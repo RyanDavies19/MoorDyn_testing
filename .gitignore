@@ -3,8 +3,4 @@ MooringTest/
 Mooring/
 .DS_Store
 developing.py
-v1_DYLIB/
-v2_DYLIB/
-dev2_DYLIB/
-Test_cases/
-compileDYLIB/
+*DYLIB/

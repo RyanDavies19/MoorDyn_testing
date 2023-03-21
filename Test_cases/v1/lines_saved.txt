@@ -1,0 +1,35 @@
+Mooring Line Data - a shortened and loosened version of one of the DeepCwind semi mooring lines
+---------------------- LINE DICTIONARY -----------------------------------------------------
+LineType  Diam    MassDenInAir    EA        cIntDamp     Can     Cat    Cdn     Cdt  
+(-)       (m)       (kg/m)        (N)        (Pa-s)      (-)     (-)    (-)     (-)   
+main     0.09      77.7066        384.243E6  -0.8        1.0     0.0    1.6     0.1            
+---------------------- NODE PROPERTIES -----------------------------------------------------
+Node      Type      X        Y         Z        M        V        FX       FY      FZ  CdA Ca
+(-)       (-)      (m)      (m)       (m)      (kg)     (m^3)    (kN)     (kN)    (kN) - -
+1         Fixed    853.87   0.0      -320.0    0        0        0        0       0 0 0
+2         Fixed    -426.94  739.47   -320.0    0        0        0        0       0 0 0
+3         Fixed    -426.94  -739.47  -320.0    0        0        0        0       0 0 0
+4         Vessel   5.2      0.0      -70.0     0        0        0        0       0 0 0
+5         Vessel   -2.6     4.5      -70.0     0        0        0        0       0 0 0
+6         Vessel   -2.6     -4.5     -70.0     0        0        0        0       0 0 0
+---------------------- LINE PROPERTIES -----------------------------------------------------
+Line     LineType  UnstrLen  NumNodes   NodeAnch  NodeFair  Flags/Outputs
+(-)      (-)       (m)         (-)       (-)       (-)       (-)
+1        main     902.2         20        1         4         p
+2        main     902.2         20        2         5         p
+3        main     902.2         20        3         6         p 
+---------------------- SOLVER OPTIONS-----------------------------------------
+0.002         dtM           time step to use in mooring integration (s)
+3.0e6         kb          bottom stiffness (Pa/m)
+3.0e5         cb          bottom damping (Pa-s/m)
+1025.0        WtrDnsty      water density (kg/m^3)
+320           WtrDpth       water depth (m)
+1.0           dtIC          time interval for analyzing convergence during IC gen (s)
+100.00         TmaxIC        max time for ic gen (s)
+4.0           CdScaleIC     factor by which to scale drag coefficients during dynamic relaxation (-)
+0.001         threshIC      threshold for IC convergence (-)
+-------------------------- OUTPUTS --------------------------------
+FairTen1
+FairTen2
+FairTen3
+--------------------- need this line ------------------
