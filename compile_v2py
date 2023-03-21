@@ -1,0 +1,5 @@
+cd /Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/
+make
+cd /Users/rdavies/work/MoorDyn_ryan/MoorDyn/
+python3 setup.py install --user
+cd /Users/rdavies/work/MoorDyn_ryan/testing

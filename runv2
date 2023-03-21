@@ -1,0 +1,4 @@
+/usr/bin/python3 /Users/rdavies/work/MoorDyn_ryan/testing/v2_NewAPI_script.py
+/usr/bin/python3 /Users/rdavies/work/MoorDyn_ryan/testing/v2_OldAPI_script.py
+mv MooringTest/*.out MooringTest/Outputs/
+mv MooringTest/*.log MooringTest/Outputs/

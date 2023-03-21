@@ -1,0 +1,8 @@
+cp Mooringtest/lines.txt Mooringtest/linesdev2.txt
+cp Mooringtest/lines.txt Mooringtest/linesv2new.txt
+cp Mooringtest/lines.txt Mooringtest/linesv2old.txt
+/usr/bin/python3 /Users/rdavies/work/MoorDyn_ryan/testing/dev2_script.py
+/usr/bin/python3 /Users/rdavies/work/MoorDyn_ryan/testing/v2_NewAPI_script.py
+/usr/bin/python3 /Users/rdavies/work/MoorDyn_ryan/testing/v2_OldAPI_script.py
+mv MooringTest/*.out MooringTest/Outputs/
+mv MooringTest/*.log MooringTest/Outputs/
