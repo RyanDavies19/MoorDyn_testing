@@ -1,0 +1,1276 @@
+Removed files with .out and .log extension from MooringTest/Outputs/
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/cablev2old.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/cablev2old.log'
+Generated entities:
+	nLineTypes  = 2
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 0
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+  - Line1:
+    ID: 1
+    UnstrLen: 600
+    N   : 30
+    d   : 0.175
+    rho : 1663.01
+    E   : 3.1223e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: 150.543
+Line 1 damping set to 1.15293e+08 Ns = 2.77313e+06 Pa-s, based on input of -0.8
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 300
+    N   : 20
+    d   : 0.26
+    rho : 753.396
+    E   : 1.4145e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: -141.463
+Line 2 damping set to 3.91737e+07 Ns = 2.07985e+06 Pa-s, based on input of -0.8
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 280
+    N   : 20
+    d   : 0.175
+    rho : 1663.01
+    E   : 3.1223e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: 150.543
+Line 3 damping set to 8.07053e+07 Ns = 1.94119e+06 Pa-s, based on input of -0.8
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (5X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+   MoorDyn closed.
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/cablev2new.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/cablev2new.log'
+Generated entities:
+	nLineTypes  = 2
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 0
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+  - Line1:
+    ID: 1
+    UnstrLen: 600
+    N   : 30
+    d   : 0.175
+    rho : 1663.01
+    E   : 3.1223e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: 150.543
+Line 1 damping set to 1.15293e+08 Ns = 2.77313e+06 Pa-s, based on input of -0.8
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 300
+    N   : 20
+    d   : 0.26
+    rho : 753.396
+    E   : 1.4145e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: -141.463
+Line 2 damping set to 3.91737e+07 Ns = 2.07985e+06 Pa-s, based on input of -0.8
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 280
+    N   : 20
+    d   : 0.175
+    rho : 1663.01
+    E   : 3.1223e+10
+    EI  : 0
+    BAin: -0.8
+    Can : 0
+    Cat : 0.008
+    Cdn : 1
+    Cdt : 1.2
+    ww_l: 150.543
+Line 3 damping set to 8.07053e+07 Ns = 1.94119e+06 Pa-s, based on input of -0.8
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (5X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+
+ Running MoorDyn (v2.a11, 2022-01-03)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+Set up Body 0, type 1
+Based on the provided infilename of MooringTest/cabledev2.dat
+The filename is MooringTest/cabledev2.dat or MooringTest/cabledev2.dat  11 21
+The MDbasename is cabledev2
+The MDbasepath is MooringTest/
+   Reading line types: cable buoyancy 
+   Reading point list: Set up Connection 1, type 1
+1 Set up Connection 2, type 0
+2 Set up Connection 3, type 0
+3 Set up Connection 4, type 1
+4 
+   Reading line list: line 1 type cable typenum 0
+Set up Line 1.
+L1->P1 L1->P2 line 2 type buoyancy typenum 1
+Set up Line 2.
+L2->P2 L2->P3 line 3 type cable typenum 0
+Set up Line 3.
+L3->P3 L3->P4 
+  nLineTypes     = 2
+  nRodTypes      = 0
+  nPoints        = 4
+  nBodies        = 0
+  nRods          = 0
+  nLines         = 3
+  nFails         = 0
+  nFreeBodies    = 0
+  nFreeRods      = 0
+  nFreePonts     = 2
+  nCpldBodies    = 0
+  nCpldRods      = 0
+  nCpldPoints    = 0
+Based on the input file, MoorDyn is expecting 0 coupled degrees of freedom.
+No Waves or Currents, or set externally
+   Creating state vectors of size 450
+   Creating mooring system.  
+Initialized Connection 2
+Initialized Connection 3
+   Line 1 damping set to 1.15293e+08 Ns = 2.77313e+06 Pa-s based on input of -0.8
+Initialized Line 1
+   Line 2 damping set to 3.91737e+07 Ns = 2.07985e+06 Pa-s based on input of -0.8
+Initialized Line 2
+   Line 3 damping set to 8.07053e+07 Ns = 1.94119e+06 Pa-s based on input of -0.8
+Initialized Line 3
+   Finalizing ICs using dynamic relaxation (5X normal drag)
+
+Freeing 2D array
+succesfully cleared array
+   MoorDyn closed.
+
+ Running MoorDyn (v1.01.03C, 2021-03-09)
+   Copyright (c) Matt Hall and NREL, licensed under GPL v3.
+   Creating mooring system.  0 fairleads, 2 anchors, 2 connections.
+   Finalizing ICs using dynamic relaxation (5X normal drag)
+
+   MoorDyn closed.
+/Users/rdavies/work/MoorDyn_ryan/testing
+Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/
+Removed files with .out and .log extension from MooringTest/Outputs/
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case3v2old.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case3v2old.log'
+WRN ../../source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case3v2old.dat:31...
+'FAIRTEN1  '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+WRN ../../source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case3v2old.dat:32...
+'                                   '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 3 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 425
+    N   : 20
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s, based on input of -1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 200
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 2 damping set to 3.43693e+08 Ns = 2.99329e+07 Pa-s, based on input of -1
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 225
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 3 damping set to 3.86655e+08 Ns = 3.36745e+07 Pa-s, based on input of -1
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+   MoorDyn closed.
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case3v2new.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case3v2new.log'
+WRN source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case3v2new.dat:31...
+'FAIRTEN1  '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+WRN source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case3v2new.dat:32...
+'                                   '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 3 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 425
+    N   : 20
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s, based on input of -1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 200
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 2 damping set to 3.43693e+08 Ns = 2.99329e+07 Pa-s, based on input of -1
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 225
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 3 damping set to 3.86655e+08 Ns = 3.36745e+07 Pa-s, based on input of -1
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+
+ Running MoorDyn (v2.a11, 2022-01-03)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+Set up Body 0, type 1
+Based on the provided infilename of MooringTest/case3dev2.dat
+The filename is MooringTest/case3dev2.dat or MooringTest/case3dev2.dat  11 21
+The MDbasename is case3dev2
+The MDbasepath is MooringTest/
+   Reading line types: main 
+   Reading point list: Set up Connection 1, type 1
+1 Set up Connection 2, type 0
+2 Set up Connection 3, type 0
+3 Set up Connection 4, type -1
+4 
+   Reading line list: line 1 type main typenum 0
+Set up Line 1.
+L1->P1 L1->P2 line 2 type main typenum 0
+Set up Line 2.
+L2->P2 L2->P3 line 3 type main typenum 0
+Set up Line 3.
+L3->P3 L3->P4 
+Warning: invalid output specifier: .  Type must be L or C/Con.
+Warning: invalid output specifier: .  Type must be L or C/Con.
+  nLineTypes     = 1
+  nRodTypes      = 0
+  nPoints        = 4
+  nBodies        = 0
+  nRods          = 0
+  nLines         = 3
+  nFails         = 0
+  nFreeBodies    = 0
+  nFreeRods      = 0
+  nFreePonts     = 2
+  nCpldBodies    = 0
+  nCpldRods      = 0
+  nCpldPoints    = 1
+Based on the input file, MoorDyn is expecting 3 coupled degrees of freedom.
+No Waves or Currents, or set externally
+   Creating state vectors of size 270
+   Creating mooring system.  
+Initializing coupled Connection 3
+Initialized Connection 2
+Initialized Connection 3
+   Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s based on input of -1
+Initialized Line 1
+   Line 2 damping set to 3.43693e+08 Ns = 2.99329e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line2, so using linear node spacing.
+Initialized Line 2
+   Line 3 damping set to 3.86655e+08 Ns = 3.36745e+07 Pa-s based on input of -1
+Initialized Line 3
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+Freeing 2D array
+succesfully cleared array
+   MoorDyn closed.
+
+ Running MoorDyn (v1.01.03C, 2021-03-09)
+   Copyright (c) Matt Hall and NREL, licensed under GPL v3.
+   Creating mooring system.  1 fairleads, 1 anchors, 2 connections.
+   Warning from Catenary: Unstretched line length too large.
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+   MoorDyn closed.
+/Users/rdavies/work/MoorDyn_ryan/testing
+Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/
+Removed files with .out and .log extension from MooringTest/Outputs/
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case2v2old.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case2v2old.log'
+WRN ../../source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case2v2old.dat:30...
+'FAIRTEN1  '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+WRN ../../source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case2v2old.dat:31...
+'                                   '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 2
+	nRodTypes   = 0
+	nPoints     = 3
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 2
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 1
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 2 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 500
+    N   : 24
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.58014e+08 Ns = 3.11801e+07 Pa-s, based on input of -1
+WRN ../../source/Line.cpp:531 initialize(): Catenary initial profile failed for Line 1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 350
+    N   : 10
+    d   : 0.33
+    rho : 1169.18
+    E   : 3.82323e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 120.976
+Line 2 damping set to 2.34004e+08 Ns = 2.00144e+07 Pa-s, based on input of -1
+Initialized Line 2
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+   MoorDyn closed.
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case2v2new.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case2v2new.log'
+WRN source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case2v2new.dat:30...
+'FAIRTEN1  '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+WRN source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case2v2new.dat:31...
+'                                   '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 2
+	nRodTypes   = 0
+	nPoints     = 3
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 2
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 1
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 2 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 500
+    N   : 24
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.58014e+08 Ns = 3.11801e+07 Pa-s, based on input of -1
+WRN source/Line.cpp:531 initialize(): Catenary initial profile failed for Line 1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 350
+    N   : 10
+    d   : 0.33
+    rho : 1169.18
+    E   : 3.82323e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 120.976
+Line 2 damping set to 2.34004e+08 Ns = 2.00144e+07 Pa-s, based on input of -1
+Initialized Line 2
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+
+ Running MoorDyn (v2.a11, 2022-01-03)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+Set up Body 0, type 1
+Based on the provided infilename of MooringTest/case2dev2.dat
+The filename is MooringTest/case2dev2.dat or MooringTest/case2dev2.dat  11 21
+The MDbasename is case2dev2
+The MDbasepath is MooringTest/
+   Reading line types: main rope 
+   Reading point list: Set up Connection 1, type 1
+1 Set up Connection 2, type 0
+2 Set up Connection 3, type -1
+3 
+   Reading line list: line 1 type main typenum 0
+Set up Line 1.
+L1->P1 L1->P2 line 2 type rope typenum 1
+Set up Line 2.
+L2->P2 L2->P3 
+Warning: invalid output specifier: .  Type must be L or C/Con.
+Warning: invalid output specifier: .  Type must be L or C/Con.
+  nLineTypes     = 2
+  nRodTypes      = 0
+  nPoints        = 3
+  nBodies        = 0
+  nRods          = 0
+  nLines         = 2
+  nFails         = 0
+  nFreeBodies    = 0
+  nFreeRods      = 0
+  nFreePonts     = 1
+  nCpldBodies    = 0
+  nCpldRods      = 0
+  nCpldPoints    = 1
+Based on the input file, MoorDyn is expecting 3 coupled degrees of freedom.
+No Waves or Currents, or set externally
+   Creating state vectors of size 222
+   Creating mooring system.  
+Initializing coupled Connection 2
+Initialized Connection 2
+   Line 1 damping set to 3.58014e+08 Ns = 3.11801e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line1, so using linear node spacing.
+Initialized Line 1
+   Line 2 damping set to 2.34004e+08 Ns = 2.00144e+07 Pa-s based on input of -1
+Initialized Line 2
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+Freeing 2D array
+succesfully cleared array
+   MoorDyn closed.
+
+ Running MoorDyn (v1.01.03C, 2021-03-09)
+   Copyright (c) Matt Hall and NREL, licensed under GPL v3.
+   Creating mooring system.  1 fairleads, 1 anchors, 1 connections.
+   Warning from Catenary: Unstretched line length too large.
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+   MoorDyn closed.
+/Users/rdavies/work/MoorDyn_ryan/testing
+Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/
+Loading input data...
+attempting to read MooringTest/cable.dat
+Mooring input file 'MooringTest/cable.dat' loaded successfully.
+------------------------------------------------------
+Converting v2 input into v1...
+Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.
+Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py
+attempting to write Mooring/lines.txt for MoorDyn v1
+Successfully written Mooring/lines.txt input file using MoorDyn v1
+System initialized, now simulating versions of MoorDyn
+==================================================
+dylib path is  ../MoorDyn/compile/DYLIB/libmoordyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+Old API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+New API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+dylib path is  dev2_DYLIB/MoorDyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+dev2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+v1 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Creating individual 2d and 3d plots...
+Creating 3d and 2d plot of all versions...
+attempting to load MooringTest/Outputs/cablev2old_Line1.out
+attempting to load MooringTest/Outputs/cablev2old_Line2.out
+attempting to load MooringTest/Outputs/cablev2old_Line3.out
+attempting to load MooringTest/Outputs/cablev2new_Line1.out
+attempting to load MooringTest/Outputs/cablev2new_Line2.out
+attempting to load MooringTest/Outputs/cablev2new_Line3.out
+attempting to load MooringTest/Outputs/cabledev2_Line1.out
+attempting to load MooringTest/Outputs/cabledev2_Line2.out
+attempting to load MooringTest/Outputs/cabledev2_Line3.out
+attempting to load MooringTest/Outputs/Line_Line1.out
+attempting to load MooringTest/Outputs/Line_Line2.out
+attempting to load MooringTest/Outputs/Line_Line3.out
+-------------------------
+Output files from versions saved to saved_runs/cable_outputs/
+Files of the form Line_Line*.out are v1 output files
+------------end--------------
+Sucessfully run for  cable.dat
+----------------------------------------------
+Loading input data...
+attempting to read MooringTest/case3.dat
+Mooring input file 'MooringTest/case3.dat' loaded successfully.
+------------------------------------------------------
+Converting v2 input into v1...
+Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.
+Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py
+attempting to write Mooring/lines.txt for MoorDyn v1
+Successfully written Mooring/lines.txt input file using MoorDyn v1
+System initialized, now simulating versions of MoorDyn
+==================================================
+dylib path is  ../MoorDyn/compile/DYLIB/libmoordyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+Old API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+New API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+dylib path is  dev2_DYLIB/MoorDyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+dev2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+v1 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Creating individual 2d and 3d plots...
+Creating 3d and 2d plot of all versions...
+attempting to load MooringTest/Outputs/case3v2old_Line1.out
+attempting to load MooringTest/Outputs/case3v2old_Line2.out
+attempting to load MooringTest/Outputs/case3v2old_Line3.out
+attempting to load MooringTest/Outputs/case3v2new_Line1.out
+attempting to load MooringTest/Outputs/case3v2new_Line2.out
+attempting to load MooringTest/Outputs/case3v2new_Line3.out
+attempting to load MooringTest/Outputs/case3dev2_Line1.out
+attempting to load MooringTest/Outputs/case3dev2_Line2.out
+attempting to load MooringTest/Outputs/case3dev2_Line3.out
+attempting to load MooringTest/Outputs/Line_Line1.out
+attempting to load MooringTest/Outputs/Line_Line2.out
+attempting to load MooringTest/Outputs/Line_Line3.out
+-------------------------
+Output files from versions saved to saved_runs/case3_outputs/
+Files of the form Line_Line*.out are v1 output files
+------------end--------------
+Sucessfully run for  case3.dat
+----------------------------------------------
+Loading input data...
+attempting to read MooringTest/case2.dat
+Mooring input file 'MooringTest/case2.dat' loaded successfully.
+------------------------------------------------------
+Converting v2 input into v1...
+Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.
+Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py
+attempting to write Mooring/lines.txt for MoorDyn v1
+Successfully written Mooring/lines.txt input file using MoorDyn v1
+System initialized, now simulating versions of MoorDyn
+==================================================
+dylib path is  ../MoorDyn/compile/DYLIB/libmoordyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+Old API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+New API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+dylib path is  dev2_DYLIB/MoorDyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+dev2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+v1 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Creating individual 2d and 3d plots...
+Creating 3d and 2d plot of all versions...
+attempting to load MooringTest/Outputs/case2v2old_Line1.out
+attempting to load MooringTest/Outputs/case2v2old_Line2.out
+attempting to load MooringTest/Outputs/case2v2new_Line1.out
+attempting to load MooringTest/Outputs/case2v2new_Line2.out
+attempting to load MooringTest/Outputs/case2dev2_Line1.out
+attempting to load MooringTest/Outputs/case2dev2_Line2.out
+attempting to load MooringTest/Outputs/Line_Line1.out
+attempting to load MooringTest/Outputs/Line_Line2.out
+-------------------------
+Output files from versions saved to saved_runs/case2_outputs/
+Removed files with .out and .log extension from MooringTest/Outputs/
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case5v2old.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case5v2old.log'
+WRN ../../source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case5v2old.dat:27...
+'FAIRTEN1                      '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 2
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 1
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 0
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 1 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 850
+    N   : 40
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s, based on input of -1
+WRN ../../source/Line.cpp:531 initialize(): Catenary initial profile failed for Line 1
+Initialized Line 1
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+   MoorDyn closed.
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case5v2new.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case5v2new.log'
+WRN source/MoorDyn2.cpp:1697 ReadInFile(): Warning in MooringTest/case5v2new.dat:27...
+'FAIRTEN1                      '
+invalid output specifier: .  Type must be oneof L, C/Con or R/Rod
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 2
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 1
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 0
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 1
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+Initializing coupled Connection 1 in 0, 0, 0...
+  - Line1:
+    ID: 1
+    UnstrLen: 850
+    N   : 40
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s, based on input of -1
+WRN source/Line.cpp:531 initialize(): Catenary initial profile failed for Line 1
+Initialized Line 1
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+
+ Running MoorDyn (v2.a11, 2022-01-03)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+Set up Body 0, type 1
+Based on the provided infilename of MooringTest/case5dev2.dat
+The filename is MooringTest/case5dev2.dat or MooringTest/case5dev2.dat  11 21
+The MDbasename is case5dev2
+The MDbasepath is MooringTest/
+   Reading line types: main 
+   Reading point list: Set up Connection 1, type 1
+1 Set up Connection 2, type -1
+2 
+   Reading line list: line 1 type main typenum 0
+Set up Line 1.
+L1->P1 L1->P2 
+Warning: invalid output specifier: .  Type must be L or C/Con.
+  nLineTypes     = 1
+  nRodTypes      = 0
+  nPoints        = 2
+  nBodies        = 0
+  nRods          = 0
+  nLines         = 1
+  nFails         = 0
+  nFreeBodies    = 0
+  nFreeRods      = 0
+  nFreePonts     = 0
+  nCpldBodies    = 0
+  nCpldRods      = 0
+  nCpldPoints    = 1
+Based on the input file, MoorDyn is expecting 3 coupled degrees of freedom.
+No Waves or Currents, or set externally
+   Creating state vectors of size 246
+   Creating mooring system.  
+Initializing coupled Connection 1
+   Line 1 damping set to 3.65174e+08 Ns = 3.18037e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line1, so using linear node spacing.
+Initialized Line 1
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+Freeing 2D array
+succesfully cleared array
+   MoorDyn closed.
+
+ Running MoorDyn (v1.01.03C, 2021-03-09)
+   Copyright (c) Matt Hall and NREL, licensed under GPL v3.
+   Creating mooring system.  1 fairleads, 1 anchors, 0 connections.
+   Warning from Catenary: Unstretched line length too large.
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+   MoorDyn closed.
+/Users/rdavies/work/MoorDyn_ryan/testing
+Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/
+Removed files with .out and .log extension from MooringTest/Outputs/
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case4v2old.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case4v2old.log'
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 0
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+  - Line1:
+    ID: 1
+    UnstrLen: 600
+    N   : 20
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 300
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 2 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 300
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 3 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+   MoorDyn closed.
+
+ Running MoorDyn (v2.a10, 2022-01-01)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+The filename is MooringTest/case4v2new.dat
+MoorDyn v2 log file with output level MSG at 'MooringTest/case4v2new.log'
+Generated entities:
+	nLineTypes  = 1
+	nRodTypes   = 0
+	nPoints     = 4
+	nBodies     = 0
+	nRods       = 0
+	nLines      = 3
+	nFails      = 0
+	nFreeBodies = 0
+	nFreeRods   = 0
+	nFreePonts  = 2
+	nCpldBodies = 0
+	nCpldRods   = 0
+	nCpldPoints = 0
+Time integrator = 2nd order Runge-Kutta
+No Waves or Currents, or set externally
+Creating mooring system...
+  - Line1:
+    ID: 1
+    UnstrLen: 600
+    N   : 20
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 1 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 1
+  - Line2:
+    ID: 2
+    UnstrLen: 300
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 2 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 2
+  - Line3:
+    ID: 3
+    UnstrLen: 300
+    N   : 10
+    d   : 0.333
+    rho : 7865.24
+    E   : 3.75465e+10
+    EI  : 0
+    BAin: -1
+    Can : 0.27
+    Cat : 0.2
+    Cdn : 1
+    Cdt : 1
+    ww_l: 5844.12
+Line 3 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s, based on input of -1
+Initialized Line 3
+Finalizing ICs using dynamic relaxation (4X normal drag)
+Fairlead tensions converged
+Remaining error after 0 s = 0%
+No Waves or Currents, or set externally
+
+ Running MoorDyn (v2.a11, 2022-01-03)
+   NOTE: This is an alpha version of MoorDyn v2, intended for testing and debugging.
+         MoorDyn v2 has significant ongoing input file changes from v1.
+   Copyright: (C) 2021 National Renewable Energy Laboratory, (C) 2014-2019 Matt Hall
+   This program is released under the GNU General Public License v3.
+Set up Body 0, type 1
+Based on the provided infilename of MooringTest/case4dev2.dat
+The filename is MooringTest/case4dev2.dat or MooringTest/case4dev2.dat  11 21
+The MDbasename is case4dev2
+The MDbasepath is MooringTest/
+   Reading line types: main 
+   Reading point list: Set up Connection 1, type 1
+1 Set up Connection 2, type 0
+2 Set up Connection 3, type 0
+3 Set up Connection 4, type 1
+4 
+   Reading line list: line 1 type main typenum 0
+Set up Line 1.
+L1->P1 L1->P2 line 2 type main typenum 0
+Set up Line 2.
+L2->P2 L2->P3 line 3 type main typenum 0
+Set up Line 3.
+L3->P3 L3->P4 
+  nLineTypes     = 1
+  nRodTypes      = 0
+  nPoints        = 4
+  nBodies        = 0
+  nRods          = 0
+  nLines         = 3
+  nFails         = 0
+  nFreeBodies    = 0
+  nFreeRods      = 0
+  nFreePonts     = 2
+  nCpldBodies    = 0
+  nCpldRods      = 0
+  nCpldPoints    = 0
+Based on the input file, MoorDyn is expecting 0 coupled degrees of freedom.
+No Waves or Currents, or set externally
+   Creating state vectors of size 270
+   Creating mooring system.  
+Initialized Connection 2
+Initialized Connection 3
+   Line 1 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line1, so using linear node spacing.
+Initialized Line 1
+   Line 2 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line2, so using linear node spacing.
+Initialized Line 2
+   Line 3 damping set to 5.1554e+08 Ns = 4.48994e+07 Pa-s based on input of -1
+   Warning from Catenary: Unstretched line length too large.
+   Catenary IC gen failed for Line3, so using linear node spacing.
+Initialized Line 3
+   Finalizing ICs using dynamic relaxation (4X normal drag)
+
+Freeing 2D array
+succesfully cleared array
+   MoorDyn closed.
+Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/
+Files of the form Line_Line*.out are v1 output files
+------------end--------------
+Sucessfully run for  case2.dat
+----------------------------------------------
+Loading input data...
+attempting to read MooringTest/case5.dat
+Mooring input file 'MooringTest/case5.dat' loaded successfully.
+------------------------------------------------------
+Converting v2 input into v1...
+Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.
+Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py
+attempting to write Mooring/lines.txt for MoorDyn v1
+Successfully written Mooring/lines.txt input file using MoorDyn v1
+System initialized, now simulating versions of MoorDyn
+==================================================
+dylib path is  ../MoorDyn/compile/DYLIB/libmoordyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+Old API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+New API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+dylib path is  dev2_DYLIB/MoorDyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+dev2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+v1 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Creating individual 2d and 3d plots...
+Creating 3d and 2d plot of all versions...
+attempting to load MooringTest/Outputs/case5v2old_Line1.out
+attempting to load MooringTest/Outputs/case5v2new_Line1.out
+attempting to load MooringTest/Outputs/case5dev2_Line1.out
+attempting to load MooringTest/Outputs/Line_Line1.out
+-------------------------
+Output files from versions saved to saved_runs/case5_outputs/
+Files of the form Line_Line*.out are v1 output files
+------------end--------------
+Sucessfully run for  case5.dat
+----------------------------------------------
+Loading input data...
+attempting to read MooringTest/case4.dat
+Mooring input file 'MooringTest/case4.dat' loaded successfully.
+------------------------------------------------------
+System initialized, now simulating versions of MoorDyn
+==================================================
+dylib path is  ../MoorDyn/compile/DYLIB/libmoordyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+Old API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+New API v2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+==================================================
+dylib path is  dev2_DYLIB/MoorDyn2.dylib
+MoorDyn initialized - now performing calls to MoorDynStep...
+Succesffuly simulated for 600.0 seconds - now closing MoorDyn...
+dev2 script executed successfully
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Creating individual 3d plots...
+Creating 3d plot of all versions...
+attempting to load MooringTest/Outputs/case4v2old_Line1.out
+attempting to load MooringTest/Outputs/case4v2old_Line2.out
+attempting to load MooringTest/Outputs/case4v2old_Line3.out
+attempting to load MooringTest/Outputs/case4v2new_Line1.out
+attempting to load MooringTest/Outputs/case4v2new_Line2.out
+attempting to load MooringTest/Outputs/case4v2new_Line3.out
+attempting to load MooringTest/Outputs/case4dev2_Line1.out
+attempting to load MooringTest/Outputs/case4dev2_Line2.out
+attempting to load MooringTest/Outputs/case4dev2_Line3.out
+-------------------------
+Output files from versions saved to saved_runs/case4_outputs/
+Files of the form Line_Line*.out are v1 output files
+------------end--------------
+Sucessfully run for  case4.dat
+----------------------------------------------

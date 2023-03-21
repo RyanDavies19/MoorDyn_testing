@@ -1332,7 +1332,7 @@ class load_infile():
                 position2 = np.array([test_line.xp[i,j], test_line.yp[i,j], test_line.zp[i,j]])
 
 
-                if i % 4000 == 0: 
+                if i % 40000 == 0: 
                     print('Timestep = ', i, ' Node = ', j)
                     print("position1 (cont): ", position1)
                     print("position2 (test): ", position2)

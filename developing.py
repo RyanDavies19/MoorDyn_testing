@@ -53,7 +53,7 @@ def compare_line (line):
 
             position1 = data1[i,j:j+3]
             position2 = data2[i,j:j+3]
-            if i-1 % 4000 == 0:
+            if i-1 % 40000 == 0:
                 print('Timestep = ', i-1, ' Node = ', j/3)
                 print("position1 (cont): ", position1)
                 print("position2 (test): ", position2)
