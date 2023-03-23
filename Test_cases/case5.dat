@@ -12,7 +12,7 @@ Node Type      X     Y      Z     M    V   CdA   CA
 ---------------------- LINES --------------------------------------       
 Line  LineType NodeAnch  NodeFair UnstrLen  NumSegs    Flags/Outputs                   
 (-)   (-)      (-)       (-)      (m)       (-)        (-)                 
-1     main      1         2       850.00    40          pt                   
+1     main      1         2       850.00    40          p                   
 ---------------------- SOLVER OPTIONS ---------------------------------------    
 2        writeLog     
 200      WtrDpth                                       
@@ -22,7 +22,8 @@ Line  LineType NodeAnch  NodeFair UnstrLen  NumSegs    Flags/Outputs
 1.0      dtIC      - time interval for analyzing convergence during IC gen (s)
 0.0     TmaxIC    - max time for ic gen (s)
 4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
-0.001    threshIC  - threshold for IC convergence (-)                                          
+0.001    threshIC  - threshold for IC convergence (-)   
+1             dtOut                                          
 ------------------------ OUTPUTS --------------------------------------------                                           
 FAIRTEN1                      
 ------------------------- need this line --------------------------------------                                                                                     

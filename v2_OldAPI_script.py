@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     # parameters
     dtC_py = 0.02   # coupling time step size (s)
-    tMax = 600.0  # simulation duration (s)
+    tMax = 30.0  # simulation duration (s)
     ts_py = np.arange(0,tMax,dtC_py) #np.array of 30 seconds, 0.02 s timesteps
 
     # Converting to ctypes
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     for i in range(0,len(xd)):
         xd[i] = 0
 
-    infileroot = "MooringTest/cable.dat"
+    infileroot = "MooringTest/lines.txt"
 
 
 #     # # For circular platform motion, not currently working

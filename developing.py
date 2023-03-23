@@ -7,7 +7,7 @@ import moorpy as mp
 import moorpy.line as Line
 from moorpy.helpers import set_axes_equal, read_mooring_file
 
-rootname = "case5"
+rootname = "lines"
 dirname = "saved_runs/{}_outputs/".format(rootname)
 versionname1 = "dev2"
 versionname2 = "v2old"
@@ -53,10 +53,10 @@ def compare_line (line):
 
             position1 = data1[i,j:j+3]
             position2 = data2[i,j:j+3]
-            if i-1 % 40000 == 0:
-                print('Timestep = ', i-1, ' Node = ', j/3)
-                print("position1 (cont): ", position1)
-                print("position2 (test): ", position2)
+            # if i-1 % 40000 == 0:
+            #     print('Timestep = ', i-1, ' Node = ', j/3)
+            #     print("position1 (cont): ", position1)
+            #     print("position2 (test): ", position2)
 
             diff = np.subtract(position1, position2)
 

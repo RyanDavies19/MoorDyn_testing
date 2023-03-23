@@ -15,9 +15,9 @@ Node      Type      X      Y         Z        M       V      CdA   Ca
 ---------------------- LINES -----------------------------------------------------
 Line     LineType   NodeA     NodeB   UnstrLen  NumSegs   Flags/Outputs
 (-)       (-)       (-)       (-)       (m)       (-)         (-)
-1        cable      1          2       600         30        pt
-2      buoyancy     2          3       300         20        pt
-3        cable      3          4       280         20        pt
+1        cable      1          2       600         30        p
+2      buoyancy     2          3       300         20        p
+3        cable      3          4       280         20        p
 ---------------------- SOLVER OPTIONS ---------------------------------------- 
 2        writeLog 
 0.001    dtM          - time step to use in mooring integration
@@ -25,8 +25,9 @@ Line     LineType   NodeA     NodeB   UnstrLen  NumSegs   Flags/Outputs
 1e4      cb           - bottom damping   Senu used zero
 600      WtrDpth       - water depth
 5.0      ICDfac       - factor by which to scale drag coefficients during dynamic relaxation IC gen
-0.0001    ICthresh      - threshold for IC convergence
-0       TmaxIC        - threshold for IC convergence
+0.0001   ICthresh      - threshold for IC convergence
+0        TmaxIC        - threshold for IC convergence
+1             dtOut     
 ---------------------- OUTPUT -----------------------------------------
 FAIRTEN1
 --------------------- need this line ------------------

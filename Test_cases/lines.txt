@@ -30,6 +30,7 @@ ID   LineType   AttachA  AttachB  UnstrLen  NumSegs  LineOutputs
 0.0         TmaxIC        max time for ic gen (s)
 4.0           CdScaleIC     factor by which to scale drag coefficients during dynamic relaxation (-)
 0.001         threshIC      threshold for IC convergence (-)
+1             dtOut     
 -------------------------- OUTPUTS --------------------------------
 FAIRTEN1
 FAIRTEN2

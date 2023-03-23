@@ -6,12 +6,13 @@ if __name__ == "__main__":
     # Flags for running
     debug = False 
     run_v1 = True
+    run_v2n = True
     simulate = True
     plot = True
     
     # Note: This only apply if plot boolean is true
     # Flags for plotting: can only plot indidvual or all, not both. If both are true, only individual runs
-    fig_options = {'animate_all' : False, 'animate_start_end' : False, 'plot2d' : True, 'plot3d' : True, 'plot_individual_start_end' : True, 'plot_all_start_end' : True, 'display' : False, 'save_fig' : True}
+    fig_options = {'animate_all' : False, 'animate_start_end' : False, 'plot2d' : True, 'plot3d' : False, 'plot_individual_start_end' : True, 'plot_all_start_end' : True, 'display' : False, 'save_fig' : True, 'show_rmse' : True}
     
     path = "MooringTest/" 
 
@@ -34,16 +35,23 @@ if __name__ == "__main__":
         rootname = fname[0]
         extension = '.'+fname[1]
         instance = run_all_scripts.run_infile()
-        if rootname == 'case4':
-            fig_options['plot2d'] = False
-            instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = False, simulate = simulate, plot = plot, fig_options = fig_options)
-            fig_options['plot2d'] = True        
-        elif rootname == 'lines':
-            fig_options['plot2d'] = False
-            instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, simulate = simulate, plot = plot, fig_options = fig_options)
-            fig_options['plot2d'] = True
+        if fig_options['plot2d']:
+            if rootname == 'case4':
+                fig_options['plot2d'] = False
+                fig_options['plot3d'] = True
+                instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = False, run_v2n = run_v2n, simulate = simulate, plot = plot, fig_options = fig_options)
+                fig_options['plot2d'] = True 
+                fig_options['plot3d'] = False       
+            elif rootname == 'lines':
+                fig_options['plot2d'] = False
+                fig_options['plot3d'] = True
+                instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, run_v2n = run_v2n, simulate = simulate, plot = plot, fig_options = fig_options)
+                fig_options['plot2d'] = True 
+                fig_options['plot3d'] = False
+            else: 
+                instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, run_v2n= run_v2n, simulate = simulate, plot = plot, fig_options = fig_options)
         else: 
-            instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, simulate = simulate, plot = plot, fig_options = fig_options)
+            instance.run(rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, run_v2n= run_v2n, simulate = simulate, plot = plot, fig_options = fig_options)
 
         print("Sucessfully run for ", rootname+extension)
         print("----------------------------------------------")

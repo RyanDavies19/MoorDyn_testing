@@ -56,7 +56,7 @@ def run (x_in, xd_in, tMax, dtC_py, vector_size, infilename, dylib = None): #onl
 if __name__ == "__main__":
 
     # Creating MoorDyn Instance with v2 API.
-    infilename = "MooringTest/linesv2new.txt" #Debugging
+    infilename = "MooringTest/lines.txt" #Debugging
     #Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods. Ex for three points, size should be 3. 
     vector_size = int(9)
     print("==================================================")

@@ -25,6 +25,7 @@ ID   LineType   AttachA  AttachB  UnstrLen  NumSegs  LineOutputs
 4.0           CdScaleIC            factor by which to scale drag coefficients during dynamic relaxation (-)
 1.0e-3        threshIC             threshold for IC convergence (-)
 0.5           FrictionCoefficient  general bottom friction coefficient, as a start (-)
+1             dtOut     
 -------------------------- OUTPUTS --------------------------------
 FairTen1
 ------------------------- need this line -------------------------------------- 

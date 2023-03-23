@@ -94,7 +94,7 @@ if __name__ == "__main__":
     for i in range(0,len(xd)):
         xd[i] = 0
 
-    infileroot = "MooringTest/linesdev2.txt"
+    infileroot = "MooringTest/lines.txt"
 
 
 #     # # For circular platform motion, not currently working

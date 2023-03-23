@@ -642,7 +642,7 @@ class load_infile():
             
             print('Successfully written '+fileName +' input file using MoorDyn v1')
        
-    def v1_build(self, file  = "Mooring/lines.txt", flag='p'):
+    def v1_build(self, outfile  = "Mooring/lines.txt", flag='p'):
         # read in data from an input file if a filename was provided
         
         if os.path.exists("Mooring/lines.txt"): #protect from overwriting
@@ -650,7 +650,7 @@ class load_infile():
             print("Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.")
             print("Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py")
 
-        self.unload(file, MDversion_out = 1, MDversion_in = 2, flag = flag, outputList = self.outputList)
+        self.unload(outfile, MDversion_out = 1, MDversion_in = 2, flag = flag, outputList = self.outputList)
 
     def plot(self, ax=None, bounds='default', rbound=0, color=None, **kwargs):
         '''Plots the mooring system objects in their current positions
@@ -1198,7 +1198,7 @@ class load_infile():
         return animation
     
     def plot_start_end(self, plot2d = False, fig = None, ax= None, path = "", rootname = "", extension = "", md_branch = "", color = None, tMax = 10):
-               
+    
         if len(path+rootname+extension)==0 or len(rootname)==0:
             raise ValueError("The MoorDyn input file name and the root name of the MoorDyn output files (e.g. the .fst file name without extension) need to be given.")
 
@@ -1212,17 +1212,20 @@ class load_infile():
 
             self.first_plot = False
             self.md_branch_old = md_branch
+        
+        tMax = self.lineList[0].Tdata[-1]
+        tMin = self.lineList[0].Tdata[0]
 
         if type(ax) == type(np.array([])):
             ax1 = ax[0]
             ax2 = ax[1]
 
             if plot2d:
-                self.plot2d(ax=ax1, bounds='default', rbound=0, color=color, time = tMax - 60)
-                self.plot2d(ax=ax2, bounds='default', rbound=0, color=color, time = tMax)
+                self.plot2d(ax=ax1, bounds='default', rbound=0, color=color, time = tMin)
+                self.plot2d(ax=ax2, bounds='default', rbound=0, color=color, time = tMax-1)
             else:
-                self.plot(ax=ax1, bounds='default', rbound=0, color=color, time = tMax -60)
-                self.plot(ax=ax2, bounds='default', rbound=0, color=color, time = tMax)
+                self.plot(ax=ax1, bounds='default', rbound=0, color=color, time = tMin)
+                self.plot(ax=ax2, bounds='default', rbound=0, color=color, time = tMax-1)
 
             ax[0].set_title("t = tMax-60")
             ax[1].set_title("tMax = {}".format(tMax))
@@ -1231,59 +1234,46 @@ class load_infile():
 
         else:
             if plot2d:
-                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMax-60)
-                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMax)
+                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMin)
+                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMax-1)
             else:
-                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMax-60)
-                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMax)
+                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMin)
+                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMax-1)
             
             ax.set_title(md_branch)
             fig.suptitle("first and last timesteps. Key: t = tMax-60 is red, tMax = {} is blue".format(tMax), fontsize = 12)
     
-    def rms_comparison (self, control = "dev2", test = "v2old"):
-        ''' Built from load data in MoorPy. Loads time series data from main MoorDyn output file (for example driver.MD.out)
-        Parameters
-        ----------
-        dirname: str
-            Directory name
-        rootname: str
-            MoorDyn output file rootname 
-        versionname: str
-            MoorDyn version used in simulation (v1, dev2, v2old, or v2new)
-        line (optional):
-            line number and name (_Line1, _Line2, etc.)
-        '''
+    def rms_comparison (self, control = "dev2", display = True, save = False, run_v1 = True, path = ''):
         
         self.control = control
-        self.test = test
-
-        self.out_dirname = "saved_runs/{}_outputs/".format(self.rootname)
-
-        if self.timeseries_not_loaded:
-            for line in self.lineList:
-                line.loadData(self.out_dirname, self.rootname+test, sep='_')
-            
-            for rod in self.rodList:
-                if isinstance(rod, mp.Line):
-                    rod.loadData(self.out_dirname, self.rootname, sep='_')  
-            
-            self.timeseries_not_loaded = False 
-
+        self.out_dirname = path
 
         # TODO: make dirname, rootname, versioname, line, etc all class variables to clear up the warnings
         # TODO: make read_mooring_file outputs all class variables so files are only loaded once for plotting. Best way would probably be to have as seperate function that is called if they havent been loaded (Called from figures or called from rmse_comparison)
         # TODO: add self to both the new functions
 
-        time, rmse_out = self.compare_all_lines()
+        fig, ax = plt.subplots(3,1, sharey=True)
+        version_list = [self.rootname+'v2new', self.rootname+'v2old', self.rootname+'dev2', 'Line']
+        if not run_v1:
+            version_list.remove('Line')
+        i = 0
+        for version in version_list:
+            if control not in version:
+                self.test = version
+                self.compare_all_lines(ax[i])
+                self.timeseries_not_loaded = True
+                i += 1 
+            
+        fig.tight_layout()
 
-        plt.plot(time, rmse_out)
-        plt.xlabel('time')
-        plt.ylabel('rmse')
-        plt.title('RMSE between {} and {}'.format(self.rootname+self.control, self.rootname+self.test))
-        # plt.ylim(0,0.005)
-        plt.show()
+        if display: 
+            fig.show()
+        if save:
+            fig.savefig(self.rootname+'_rmse.png', dpi = 300)
 
     def compare_line (self, line_num):
+
+        self.lineList[line_num].loadData(self.out_dirname, self.test, sep = '_') # remember number starts on 1 rather than 0
 
         class test_line:
             Tdata = self.lineList[line_num].Tdata
@@ -1291,6 +1281,7 @@ class load_infile():
             xp = self.lineList[line_num].xp
             yp = self.lineList[line_num].yp
             zp = self.lineList[line_num].zp
+            dummy_list = []
 
         self.lineList[line_num].loadData(self.out_dirname, self.rootname+self.control, sep = '_') # remember number starts on 1 rather than 0
         
@@ -1300,23 +1291,84 @@ class load_infile():
             xp = self.lineList[line_num].xp
             yp = self.lineList[line_num].yp
             zp = self.lineList[line_num].zp
+            dummy_list = []
+        
+        # Work-around for dev2 dtOut flag error
+        if len(control_line.Tdata) > 599:
+            print("Faulty time steps in dev2. Removed via workaround:")
+            print(control_line.Tdata[1], control_line.Tdata[9], control_line.Tdata[34], control_line.Tdata[259])
+            i = 0
+            while i < 4:
+                if i == 0:
+                    control_line.dummy_list = list(control_line.Tdata)
+                elif i == 1:
+                    control_line.dummy_list = list(control_line.xp)
+                elif i == 2:
+                    control_line.dummy_list = list(control_line.yp)
+                elif i == 3:
+                    control_line.dummy_list = list(control_line.zp)
+                else:
+                    break
+                del control_line.dummy_list[1]
+                del control_line.dummy_list[8]
+                del control_line.dummy_list[32]
+                del control_line.dummy_list[256]
+                del control_line.dummy_list[-1]
+                if i ==0:
+                    control_line.Tdata = np.array(control_line.dummy_list)
+                elif i == 1:
+                    control_line.xp = np.array(control_line.dummy_list)
+                elif i == 2:
+                    control_line.yp = np.array(control_line.dummy_list)
+                elif i == 3:
+                    control_line.zp = np.array(control_line.dummy_list)
+                else:
+                    break
+                i+=1
+            print('Fixed T, xp, yp, and zp values:')
+            # print(len(control_line.Tdata), len(control_line.xp), len(control_line.yp), len(control_line.zp))
+            print(control_line.Tdata[0], control_line.Tdata[1], control_line.Tdata[2], control_line.Tdata[7], control_line.Tdata[8], control_line.Tdata[9], control_line.Tdata[31], control_line.Tdata[32], control_line.Tdata[33], control_line.Tdata[255], control_line.Tdata[256], control_line.Tdata[257])
+            print('')
 
-        print("-------- Line ", line_num, " --------")
-
-
-        # channels: list of strings of channel names (1st line of file)
-        # units: list of strings of units (2nd line of file)
-        # ch: disctionary where each channel name corresponds to the column number, easier indexing with data array
-        # data: np array of all lines below first two
-
-        # RMSE for single timestep and single node
-        # find difference between both datasets for x, y, and z at each timestep for each node
-        # square the 3 differences and sum squares
-        # divide by 3 (number of datapoints)
-        # sqrt whole thing
+        # Work-around for v1 dtOut flag error
+        if self.test == 'Line':
+            print("Faulty time steps in v1. Removed via workaround:")
+            print(test_line.Tdata[1], test_line.Tdata[9], test_line.Tdata[34], test_line.Tdata[259])
+            i = 0
+            while i < 4:
+                if i == 0:
+                    test_line.dummy_list = list(test_line.Tdata)
+                elif i == 1:
+                    test_line.dummy_list = list(test_line.xp)
+                elif i == 2:
+                    test_line.dummy_list = list(test_line.yp)
+                elif i == 3:
+                    test_line.dummy_list = list(test_line.zp)
+                else:
+                    break
+                del test_line.dummy_list[1]
+                del test_line.dummy_list[8]
+                del test_line.dummy_list[32]
+                del test_line.dummy_list[256]
+                del test_line.dummy_list[-1]
+                if i ==0:
+                    test_line.Tdata = np.array(test_line.dummy_list)
+                elif i == 1:
+                    test_line.xp = np.array(test_line.dummy_list)
+                elif i == 2:
+                    test_line.yp = np.array(test_line.dummy_list)
+                elif i == 3:
+                    test_line.zp = np.array(test_line.dummy_list)
+                else:
+                    break
+                i+=1
+            print('Fixed T, xp, yp, and zp values:')
+            # print(len(control_line.Tdata), len(control_line.xp), len(control_line.yp), len(control_line.zp))
+            print(test_line.Tdata[0], test_line.Tdata[1], test_line.Tdata[2], test_line.Tdata[7], test_line.Tdata[8], test_line.Tdata[9], test_line.Tdata[31], test_line.Tdata[32], test_line.Tdata[33], test_line.Tdata[255], test_line.Tdata[256], test_line.Tdata[257])
+            print('')
 
         if (len(control_line.Tdata) != len(test_line.Tdata)) or (control_line.nNodes != test_line.nNodes):
-            print("Error, make sure both datasets are same length")
+            print("Error, make sure both datasets are same length. Quitting rms error calcualtion...")
             return
 
         nNodes = control_line.nNodes
@@ -1332,10 +1384,10 @@ class load_infile():
                 position2 = np.array([test_line.xp[i,j], test_line.yp[i,j], test_line.zp[i,j]])
 
 
-                if i % 40000 == 0: 
-                    print('Timestep = ', i, ' Node = ', j)
-                    print("position1 (cont): ", position1)
-                    print("position2 (test): ", position2)
+                # if i % 40000 == 0: 
+                #     print('Timestep = ', i, ' Node = ', j)
+                #     print("position1 (cont): ", position1)
+                #     print("position2 (test): ", position2)
 
 
                 diff = np.subtract(position1, position2)
@@ -1355,7 +1407,7 @@ class load_infile():
 
         # Working! Need to find a good way to smooth the data though, becasue the high time resolution means really messy plotting 
 
-    def compare_all_lines(self):
+    def compare_all_lines(self, ax):
 
         for i in range(0,len(self.lineList)):
             rmse_line = self.compare_line(i)
@@ -1368,7 +1420,14 @@ class load_infile():
         for j in range(0,len(time)):
             rmse_final[j] = np.sqrt(np.sum(np.square(rmse[j,:]))/len(rmse[j,:]))
         
-        return time, rmse_final
+        ax.plot(time, rmse_final)
+        ax.set_xlabel('time (s)')
+        ax.set_ylabel('rmse (m)')
+        if self.test == 'Line':
+            ax.set_title('RMSE between {} and {}'.format(self.rootname+self.control, self.rootname+'v1'))
+        else:
+            ax.set_title('RMSE between {} and {}'.format(self.rootname+self.control, self.rootname+self.test))
+        return
 
 class run_infile():
 
@@ -1377,9 +1436,15 @@ class run_infile():
     def __init__(self):
         pass
     
-    def figures(self, instance, path, rootname, animate_all = False, animate_start_end = False, plot_individual_start_end = False, plot_all_start_end = False , plot2d = False, plot3d = False, from_saved_runs = False, display = True, run_v1 = False, run_v2n = False, save = False, tMax = None):
-        
-        if plot_all_start_end or plot_individual_start_end:
+    def figures(self, instance, path, rootname, animate_all = False, animate_start_end = False, plot_individual_start_end = False, plot_all_start_end = False , plot2d = False, plot3d = False, from_saved_runs = False, display = True, run_v1 = False, run_v2n = False, save = False, show_rmse = False, tMax = None):
+
+        if save:
+            if not os.path.isdir("saved_runs/figures/"):
+                os.system("mkdir saved_runs/figures/")
+            if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
+                os.system("mkdir saved_runs/figures/{}/".format(rootname))
+
+        if plot_all_start_end or plot_individual_start_end or not show_rmse:
             if not (plot2d or plot3d):
                 print("For plotting, please specify 2d or 3d. Ending plot function...")
                 return
@@ -1405,7 +1470,7 @@ class run_infile():
                     v1anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = False)
             print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
     
-        elif animate_start_end:
+        if animate_start_end:
             fig2 = plt.figure() 
             ax2 = plt.axes(projection='3d')
 
@@ -1425,7 +1490,7 @@ class run_infile():
                     v1anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = True)
             print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
 
-        elif plot_all_start_end and plot_individual_start_end:
+        if plot_all_start_end and plot_individual_start_end:
             if tMax == None:
                 print("Please specify tmax for plotting end timestep. Ending plot function...")
                 return
@@ -1650,12 +1715,6 @@ class run_infile():
                 if save:
                     fig4.savefig(rootname+"_individual_3dplot.png", dpi = 300)
             
-            if save:
-                if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
-                    os.system("mkdir saved_runs/figures/{}".format(rootname))
-                os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-                print("{}_individual_*.png saved to saved_runs/figures/".format(rootname))
-            
         elif plot_all_start_end: 
             if tMax == None:
                 print("Please specify tmax for plotting end timestep. Ending plot function...")
@@ -1741,20 +1800,26 @@ class run_infile():
                 fig6.tight_layout()
                 if save:
                     fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)  
-            
-            if save:
-                if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
-                    os.system("mkdir saved_runs/figures/{}".format(rootname))
-                os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-            
-        else:
+        
+        if show_rmse:
+            if from_saved_runs:
+                location = "saved_runs/"+rootname+"_outputs/"
+                load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, path = location)
+            else:
+                location = path+"Outputs/"
+                load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, path = location)
+
+        os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
+        print("{}_individual_*.png saved to saved_runs/figures/".format(rootname))
+
+        if not (show_rmse or plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end):
             print("Spececify an option to make an annimation or plot. Ending plot function...")
             return
 
         if display:
             print("Displaying figure...")
             plt.show()
-    
+
         return
 
     def simulate_all (self, x, xd, xp, xdp, tMax, dtC, vector_size, filename, extension, run_v1, run_v2n):
@@ -1798,6 +1863,7 @@ class run_infile():
         os.system("mv MooringTest/*.log MooringTest/Outputs/")
 
     def save_outputs(self, path, rootname, extension, remove_version_inputs = True, del_logs = True):
+        os.system("mkdir saved_runs/")
         os.system("mkdir saved_runs/{}_outputs/".format(rootname)) # TODO: Add a 'if is directory, then skip'
         os.system("mv MooringTest/*.out saved_runs/{}_outputs/".format(rootname))
         os.system("mv MooringTest/*.log saved_runs/{}_outputs/".format(rootname))
@@ -1873,12 +1939,15 @@ class run_infile():
                 self.simulate_all (x, xd, xp, xdp, tMax, dtC, vector_size, filename, extension, run_v1, run_v2n)
                 
                 if plot:
-                    self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = False, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, tMax = tMax-1)
+                    if fig_options['save_fig']:
+                        if not os.path.isdir("saved_runs/"):
+                            os.system("mkdir saved_runs/")
+                    self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = False, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, show_rmse = fig_options['show_rmse'], tMax = tMax-1)
 
                 self.save_outputs (path, rootname, extension, remove_version_inputs = True, del_logs = True)
 
             elif plot:
-                self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = True, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, tMax = tMax)
+                self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = True, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, show_rmse = fig_options['show_rmse'], tMax = tMax)
 
             else:
                 print("Please specify appropriate boolean flags. Quitting...")
@@ -2308,26 +2377,24 @@ if __name__ == "__main__":
      #------------------- Run All Scripts -----------------------------
 
     # Flags for running
-    debug = True 
+    debug = False 
     run_v1 = True
     run_v2n = True
     simulate = False
-    plot = False
+    plot = True
 
     fig_options = {}
     if plot:
     # Note: This only apply if plot boolean is true
     # Flags for plotting: can only plot indidvual or all, not both. If both are true, only individual runs
-        fig_options = {'animate_all' : False, 'animate_start_end' : False, 'plot2d' : False, 'plot3d' : False, 'plot_individual_start_end' : False, 'plot_all_start_end' : False, 'display' : False, 'save_fig' : False}
+        fig_options = {'animate_all' : False, 'animate_start_end' : False, 'plot2d' : False, 'plot3d' : True, 'plot_individual_start_end' : False, 'plot_all_start_end' : True, 'display' : True, 'save_fig' : True, 'show_rmse' : True}
     
-
     #TODO: figure out why plot_animation and plot_start_end are giving different pictures for the final timestep
         # plot_start_end is the correct output, verified by MoorPy
 
-    rootname = "case5" 
+    rootname = "case4" 
     extension = ".dat"
     path = "MooringTest/"
-
 
     tMax = 600.0  # simulation duration (s)
     
