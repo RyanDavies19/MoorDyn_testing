@@ -4,3 +4,5 @@ Mooring/
 .DS_Store
 developing.py
 *DYLIB/
+.vscode/
+*.png
