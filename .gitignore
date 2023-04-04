@@ -6,3 +6,4 @@ developing.py
 *DYLIB/
 .vscode/
 *.png
+static_runs/
