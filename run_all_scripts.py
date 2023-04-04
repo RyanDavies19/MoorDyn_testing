@@ -1,4 +1,4 @@
-from ctypes import *
+import ctypes
 import os
 import numpy as np
 
@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 import moorpy as mp
 from moorpy.helpers import set_axes_equal, read_mooring_file
+import moordyn
 
 
 class load_infile():
@@ -448,7 +449,7 @@ class load_infile():
                     self.MDoptions[entry1] = entry0
                     
                     line = next(f)
-            if  line.count('---') > 0 and "outputs" in line.lower():
+            if  line.count('---') > 0 and ("outputs" or "output") in line.lower():
                 line = next(f) # skip this header line
             
                 while line.count('---') == 0: 
@@ -1116,38 +1117,15 @@ class load_infile():
         ybounds          = kwargs.get('ybounds'        , None      )     # the bounds of the y-axis. The midpoint of these bounds determines the origin point of orientation of the plot
         zbounds          = kwargs.get('zbounds'        , None      )     # the bounds of the z-axis. The midpoint of these bounds determines the origin point of orientation of the plot
 
-        
-        # not adding cbar_tension colorbar yet since the tension magnitudes might change in the animation and the colorbar won't reflect that
-        # can use any other kwargs that go into self.plot()
+                # can use any other kwargs that go into self.plot()
         
         if self.qs==1:
-            raise ValueError("This System is set to be quasi-static. Import MoorDyn data and make qs=0 to use this method")
-            
+            raise ValueError("This System is set to be quasi-static. Import MoorDyn data and make qs=0 to use this method")   
 
         # create the figure and axes to draw the animation
         fig, ax = self.plot(ax=axis, color=color, draw_body=draw_body, bathymetry=bathymetry, opacity=opacity, hidebox=hidebox, rang=rang, 
                             colortension=colortension, xbounds=xbounds, ybounds=ybounds, zbounds=zbounds)
-        '''
-        # can do this section instead of self.plot(). They do the same thing
-        fig = plt.figure(figsize=(20/2.54,12/2.54))
-        ax = Axes3D(fig)
-        for imooring in self.lineList:
-            imooring.drawLine(0, ax)
-        '''
-        # set figure x/y/z bounds
-        '''
-        d = 1600                # can make this an input later
-        ax.set_xlim((-d,d))
-        ax.set_ylim((-d,d)); 
-        ax.set_zlim((-self.depth, 300))
-        
-        
-        # make the axes scaling equal
-        rangex = np.diff(ax.get_xlim3d())[0]
-        rangey = np.diff(ax.get_ylim3d())[0]
-        rangez = np.diff(ax.get_zlim3d())[0]
-        ax.set_box_aspect([rangex, rangey, rangez])
-        '''
+    
         ax.set_xlabel('x');    ax.set_ylabel('y');      ax.set_zlabel('z');
         label = ax.text(-100, 100, 0, 'time=0', ha='center', va='center', fontsize=10, color="k")
    
@@ -1184,17 +1162,14 @@ class load_infile():
         if len(path+rootname+extension)==0 or len(rootname)==0:
             raise ValueError("The MoorDyn input file name and the root name of the MoorDyn output files (e.g. the .fst file name without extension) need to be given.")
 
-        if self.timeseries_not_loaded:
-            for line in self.lineList:
-                line.loadData(path, rootname, sep='_')
+        for line in self.lineList:
+            line.loadData(path, rootname, sep='_')
+        
+        for rod in self.rodList:
+            if isinstance(rod, mp.Line):
+                rod.loadData(path, rootname, sep='_')  
             
-            for rod in self.rodList:
-                if isinstance(rod, mp.Line):
-                    rod.loadData(path, rootname, sep='_')  
-            
-            self.timeseries_not_loaded = False 
-
-        animation = self.animateLines(figure=fig, axis=ax, color=color, interval=1, repeat=True, delay=0, runtime=-1, start_end_ani=start_end_ani)
+        animation = self.animateLines(figure=fig, axis=ax, color=color, interval=500, repeat=True, delay=0, runtime=-1, start_end_ani=start_end_ani)
         return animation
     
     def plot_start_end(self, plot2d = False, fig = None, ax= None, path = "", rootname = "", extension = "", md_branch = "", color = None, tMax = 10):
@@ -1227,49 +1202,94 @@ class load_infile():
                 self.plot(ax=ax1, bounds='default', rbound=0, color=color, time = tMin)
                 self.plot(ax=ax2, bounds='default', rbound=0, color=color, time = tMax-1)
 
-            ax[0].set_title("t = tMax-60")
-            ax[1].set_title("tMax = {}".format(tMax))
+            ax[0].set_title("tMin = {}".format(tMin))
+            ax[1].set_title("tMax-1 = {}".format(tMax-1))
 
             fig.suptitle("Key: v2old is red, v2new is yellow, dev2 is blue, and v1 is green", fontsize = 12)
 
         else:
             if plot2d:
-                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMin)
-                self.plot2d(ax=ax, bounds='default', rbound=0, color=color, time = tMax-1)
+                self.plot2d(ax=ax, bounds='default', rbound=0, color = 'r', time = tMin)
+                self.plot2d(ax=ax, bounds='default', rbound=0, color= 'b', time = tMax-1)
             else:
-                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMin)
-                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMax-1)
+                self.plot(ax=ax, bounds='default', rbound=0, color= 'r', time = tMin)
+                self.plot(ax=ax, bounds='default', rbound=0, color= 'b', time = tMax-1)
             
             ax.set_title(md_branch)
-            fig.suptitle("first and last timesteps. Key: t = tMax-60 is red, tMax = {} is blue".format(tMax), fontsize = 12)
+            fig.suptitle("first and last timesteps. Key: tMin = {} is red, tMax-1 = {} is blue".format(tMin, tMax), fontsize = 12)
     
-    def rms_comparison (self, control = "dev2", display = True, save = False, run_v1 = True, path = ''):
+    def rms_comparison (self, control = "dev2", display = True, save = False, run_v1 = True, run_v2n = True, run_v2o = True, line_rmse = True, ten_rmse = True, plot_ten = True, path = ''):
         
-        self.control = control
+        self.control = self.rootname+control
         self.out_dirname = path
 
         # TODO: make dirname, rootname, versioname, line, etc all class variables to clear up the warnings
         # TODO: make read_mooring_file outputs all class variables so files are only loaded once for plotting. Best way would probably be to have as seperate function that is called if they havent been loaded (Called from figures or called from rmse_comparison)
         # TODO: add self to both the new functions
 
-        fig, ax = plt.subplots(3,1, sharey=True)
         version_list = [self.rootname+'v2new', self.rootname+'v2old', self.rootname+'dev2', 'Line']
         if not run_v1:
             version_list.remove('Line')
+        if not run_v2n:
+            version_list.remove(self.rootname+'v2new')
+        if not run_v2o:
+            version_list.remove(self.rootname+'v2old')
+
+        if line_rmse:
+            fig1, ax1 = plt.subplots(3,1, sharey=True, sharex= True)
+        if ten_rmse:
+            fig2, ax2 = plt.subplots(3,1, sharex= True)
+
+        if plot_ten:
+            fig3, ax3 = plt.subplots(1,1)
+
         i = 0
         for version in version_list:
             if control not in version:
-                self.test = version
-                self.compare_all_lines(ax[i])
-                self.timeseries_not_loaded = True
-                i += 1 
-            
-        fig.tight_layout()
+                if line_rmse:
+                    self.test = version
+                    self.compare_all_lines(ax1[i])
+                    self.timeseries_not_loaded = True
+                    
+                if ten_rmse:
+                    if version == 'Line':
+                        self.test = 'Line_Lines'
+                    else:
+                        self.test = version
+                    self.read_tensions(ax2[i])
+                if ten_rmse or line_rmse:
+                    i += 1 
+            if plot_ten:
+                if version == 'Line':
+                    version = 'Line_Lines'
+                self.plot_ten(version, ax3)
+                
+        if line_rmse:
+            fig1.supxlabel('time (s)')
+            fig1.supylabel('rmse (m)')
+            fig1.tight_layout()
+
+        if ten_rmse:  
+            fig2.supylabel("Tension RMS error (kN)")
+            fig2.supxlabel("Time (s)")
+            fig2.tight_layout()
+        
+        if plot_ten:
+            fig3.suptitle("Line tensions (kN) for "+self.rootname)
+            ax3.legend(['v2n','v2o','dev2','v1'])
+            ax3.set_ylabel('Tension (kN)')
+            ax3.set_xlabel('Time (s)')
+            fig3.tight_layout()
 
         if display: 
-            fig.show()
+            plt.show()
         if save:
-            fig.savefig(self.rootname+'_rmse.png', dpi = 300)
+            if line_rmse:
+                fig1.savefig(self.rootname+'_line_rmse.png', dpi = 300)
+            if ten_rmse:
+                fig2.savefig(self.rootname+'_ten_rmse.png', dpi = 300)
+            if plot_ten:
+                fig3.savefig(self.rootname+'_tens.png', dpi = 300)
 
     def compare_line (self, line_num):
 
@@ -1283,7 +1303,7 @@ class load_infile():
             zp = self.lineList[line_num].zp
             dummy_list = []
 
-        self.lineList[line_num].loadData(self.out_dirname, self.rootname+self.control, sep = '_') # remember number starts on 1 rather than 0
+        self.lineList[line_num].loadData(self.out_dirname, self.control, sep = '_') # remember number starts on 1 rather than 0
         
         class control_line:
             Tdata = self.lineList[line_num].Tdata
@@ -1368,7 +1388,7 @@ class load_infile():
             print('')
 
         if (len(control_line.Tdata) != len(test_line.Tdata)) or (control_line.nNodes != test_line.nNodes):
-            print("Error, make sure both datasets are same length. Quitting rms error calcualtion...")
+            print("Error, make sure both datasets are same length or tMax = 600 becasue of bugs with dtOut. Quitting rms error calcualtion...")
             return
 
         nNodes = control_line.nNodes
@@ -1382,13 +1402,6 @@ class load_infile():
 
                 position1 = np.array([control_line.xp[i,j], control_line.yp[i,j], control_line.zp[i,j]])
                 position2 = np.array([test_line.xp[i,j], test_line.yp[i,j], test_line.zp[i,j]])
-
-
-                # if i % 40000 == 0: 
-                #     print('Timestep = ', i, ' Node = ', j)
-                #     print("position1 (cont): ", position1)
-                #     print("position2 (test): ", position2)
-
 
                 diff = np.subtract(position1, position2)
 
@@ -1421,22 +1434,128 @@ class load_infile():
             rmse_final[j] = np.sqrt(np.sum(np.square(rmse[j,:]))/len(rmse[j,:]))
         
         ax.plot(time, rmse_final)
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('rmse (m)')
         if self.test == 'Line':
-            ax.set_title('RMSE between {} and {}'.format(self.rootname+self.control, self.rootname+'v1'))
+            ax.set_title('RMS position error between {} and {}'.format(self.control, self.rootname+'v1'))
         else:
-            ax.set_title('RMSE between {} and {}'.format(self.rootname+self.control, self.rootname+self.test))
+            ax.set_title('RMS position error between {} and {}'.format(self.control, self.test))
         return
+
+    def read_tensions(self, ax):
+        data1, ch1, channels1, units1 = read_mooring_file(self.out_dirname, self.control+'.out')
+        data2, ch2, channels2, units2 = read_mooring_file(self.out_dirname, self.test+'.out')
+        data3 = np.zeros((599,2))
+        data4 = np.zeros((599,2))
+        # Work-around for dev2 dtOut flag error
+        if len(data1[:,0]) > 599:
+            print("Faulty time steps in dev2. Removed via workaround:")
+            print(data1[1,0], data1[9,0], data1[34,0], data1[259,0])
+            i = 0
+            while i < 2:
+                if i == 0:
+                    dummy_list = list(data1[:,0])
+                elif i == 1:
+                    dummy_list = list(data1[:,1])
+                else:
+                    break
+                del dummy_list[1]
+                del dummy_list[8]
+                del dummy_list[32]
+                del dummy_list[256]
+                del dummy_list[-1]
+                if i ==0:
+                    data3[:,0] = np.array(dummy_list)
+                elif i == 1:
+                    data3[:,1] = np.array(dummy_list)
+                else:
+                    break
+                i+=1
+            print('Fixed T, xp, yp, and zp values:')
+            # print(len(control_line.Tdata), len(control_line.xp), len(control_line.yp), len(control_line.zp))
+            print(data3[0,0], data3[1,0], data3[2,0], data3[7,0], data3[8,0], data3[9,0], data3[31,0], data3[32,0], data3[33,0], data3[255,0], data3[256,0], data3[257,0])
+            print('')
+        else: 
+            data3 = data1
+        if len(data2[:,0]) > 599:
+            print("Faulty time steps in dev2. Removed via workaround:")
+            print(data2[1,0], data2[9,0], data2[34,0], data2[259,0])
+            i = 0
+            while i < 2:
+                if i == 0:
+                    dummy_list = list(data2[:,0])
+                elif i == 1:
+                    dummy_list = list(data2[:,1])
+                else:
+                    break
+                del dummy_list[1]
+                del dummy_list[8]
+                del dummy_list[32]
+                del dummy_list[256]
+                del dummy_list[-1]
+                if i ==0:
+                    data4[:,0] = np.array(dummy_list)
+                elif i == 1:
+                    data4[:,1] = np.array(dummy_list)
+                else:
+                    break
+                i+=1
+            print('Fixed T, xp, yp, and zp values:')
+            # print(len(control_line.Tdata), len(control_line.xp), len(control_line.yp), len(control_line.zp))
+            print(data4[0,0], data4[1,0], data4[2,0], data4[7,0], data4[8,0], data4[9,0], data4[31,0], data4[32,0], data4[33,0], data4[255,0], data4[256,0], data4[257,0])
+            print('')
+        else: 
+            data4 = data2
+
+        rmse = np.zeros(np.size(data4[:,0]))
+        rmse = np.abs(np.subtract(data3[:,1],data4[:,1]))/1000
+        time = data3[:,0]
+
+        ax.plot(time, rmse) 
+        ax.set_title("Absolute difference between {} and {}".format(self.test, self.control))
+        
+    def plot_ten(self, version, ax):
+        data1, ch1, channels1, units1 = read_mooring_file(self.out_dirname,version+'.out')
+        data3 = np.zeros((599,len(channels1)))
+        if len(data1[:,0]) > 599:
+            print("Faulty time steps in dev2. Removed via workaround:")
+            print(data1[1,0], data1[9,0], data1[34,0], data1[259,0])
+            i = 0
+            while i < 2:
+                if i == 0:
+                    dummy_list = list(data1[:,0])
+                elif i == 1:
+                    dummy_list = list(data1[:,1])
+                else:
+                    break
+                del dummy_list[1]
+                del dummy_list[8]
+                del dummy_list[32]
+                del dummy_list[256]
+                del dummy_list[-1]
+                if i ==0:
+                    data3[:,0] = np.array(dummy_list)
+                elif i == 1:
+                    data3[:,1] = np.array(dummy_list)
+                else:
+                    break
+                i+=1
+            print('Fixed T, xp, yp, and zp values:')
+            # print(len(control_line.Tdata), len(control_line.xp), len(control_line.yp), len(control_line.zp))
+            print(data3[0,0], data3[1,0], data3[2,0], data3[7,0], data3[8,0], data3[9,0], data3[31,0], data3[32,0], data3[33,0], data3[255,0], data3[256,0], data3[257,0])
+            print('')
+        else: 
+            data3 = data1
+        ax.plot(data3[:,0], data3[:,1]/1000)
+
 
 class run_infile():
 
-# TODO: Make file names, fig, ax, etc all class variables 
+    # TODO: Make file names, fig, ax, etc all class variables 
 
     def __init__(self):
+        # TODO: Move all the boolean flags to here as a couple of dictionaries and reduce passing between functions
         pass
     
-    def figures(self, instance, path, rootname, animate_all = False, animate_start_end = False, plot_individual_start_end = False, plot_all_start_end = False , plot2d = False, plot3d = False, from_saved_runs = False, display = True, run_v1 = False, run_v2n = False, save = False, show_rmse = False, tMax = None):
+    def figures(self, instance, path, rootname, animate_all = False, animate_start_end = False, plot_individual_start_end = False, plot_all_start_end = False , plot2d = False, plot3d = False, from_saved_runs = False, display = True, run_v1 = False, run_v2n = False, run_v2o = False, save = False, show_rmse = False, tMax = None):
 
         if save:
             if not os.path.isdir("saved_runs/figures/"):
@@ -1444,7 +1563,7 @@ class run_infile():
             if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
                 os.system("mkdir saved_runs/figures/{}/".format(rootname))
 
-        if plot_all_start_end or plot_individual_start_end or not show_rmse:
+        if plot_all_start_end or plot_individual_start_end:
             if not (plot2d or plot3d):
                 print("For plotting, please specify 2d or 3d. Ending plot function...")
                 return
@@ -1453,22 +1572,22 @@ class run_infile():
             fig1 = plt.figure() 
             ax1 = plt.axes(projection='3d')
             if not from_saved_runs:
-                v2oanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
+                v2oanmi = instance.plot_animation( fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
                 if run_v2n:
-                    v2nanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
-                dev2anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
+                    v2nanmi = instance.plot_animation( fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
+                dev2anmi = instance.plot_animation( fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
                 if run_v1:
-                    v1anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = "Line", color = "g", start_end_ani = False)
+                    v1anmi = instance.plot_animation( fig = fig1, ax = ax1, path = path+"Outputs/", rootname = "Line", color = "g", start_end_ani = False)
 
                 print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
             else: 
-                v2oanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
+                v2oanmi = instance.plot_animation(fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
                 if run_v2n:
-                    v2nanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
-                dev2anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
+                    v2nanmi = instance.plot_animation( fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
+                dev2anmi = instance.plot_animation( fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
                 if run_v1:
-                    v1anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = False)
-            print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
+                    v1anmi = instance.plot_animation( fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = False)
+            fig1.legend(["v2old", "v2new","dev2","v1"])
     
         if animate_start_end:
             fig2 = plt.figure() 
@@ -1488,7 +1607,7 @@ class run_infile():
                 dev2anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = True)
                 if run_v1:
                     v1anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = True)
-            print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
+            fig2.legend(["v2old", "v2new","dev2","v1"])
 
         if plot_all_start_end and plot_individual_start_end:
             if tMax == None:
@@ -1802,16 +1921,17 @@ class run_infile():
                     fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)  
         
         if show_rmse:
-            if from_saved_runs:
-                location = "saved_runs/"+rootname+"_outputs/"
-                load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, path = location)
+            if run_v2o or run_v1 or run_v2n:
+                if from_saved_runs:
+                    location = "saved_runs/"+rootname+"_outputs/"
+                    load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, run_v2n= run_v2n, run_v2o = run_v2o, path = location)
+                else:
+                    location = path+"Outputs/"
+                    load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, run_v2n= run_v2n, run_v2o = run_v2o, path = location)
             else:
-                location = path+"Outputs/"
-                load_infile.rms_comparison(instance, display = display, save = save, run_v1 = run_v1, path = location)
-
-        os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-        print("{}_individual_*.png saved to saved_runs/figures/".format(rootname))
-
+                print("RMS error calcaulation requires at least two datasets. Ending plot function...")
+                return
+            
         if not (show_rmse or plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end):
             print("Spececify an option to make an annimation or plot. Ending plot function...")
             return
@@ -1819,10 +1939,276 @@ class run_infile():
         if display:
             print("Displaying figure...")
             plt.show()
+       
+        if save:
+            os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
+            print("{}_individual_*.png saved to saved_runs/figures/".format(rootname))
 
         return
 
-    def simulate_all (self, x, xd, xp, xdp, tMax, dtC, vector_size, filename, extension, run_v1, run_v2n):
+    def save_outputs(self, remove_version_inputs = True, del_logs = True):
+        os.system("mkdir saved_runs/")
+        os.system("mkdir saved_runs/{}_outputs/".format(self.rootname)) # TODO: Add a 'if is directory, then skip'
+        os.system("mv MooringTest/*.out saved_runs/{}_outputs/".format(self.rootname))
+        os.system("mv MooringTest/*.log saved_runs/{}_outputs/".format(self.rootname))
+        os.system("mv MooringTest/Outputs/* saved_runs/{}_outputs/".format(self.rootname))
+        os.system("./clean_outputs")
+        if del_logs:
+            os.system("rm saved_runs/{}_outputs/*.log".format(self.rootname))
+
+        print("-------------------------")
+        print("Output files from versions saved to saved_runs/{}_outputs/".format(self.rootname))
+        print("Files of the form Line_Line*.out are v1 output files")
+
+        if remove_version_inputs:
+            os.system("rm {}".format(self.path+self.rootname+"v2old"+self.extension))
+            os.system("rm {}".format(self.path+self.rootname+"v2new"+self.extension))
+            os.system("rm {}".format(self.path+self.rootname+"dev2"+self.extension))
+
+    def get_positions(self):
+        scaler = [1., 1., 1., np.pi/180., np.pi/180., np.pi/180.]  # for scaling platform position inputs
+        outFileName = "PtfmMotions.dat"
+        i=0  # file line number
+        t_in = []
+        Xp_in = []
+        myfile2 = open(outFileName, 'r');     # open an input stream to the line data input file
+        if myfile2:
+            print(outFileName, " opened.") 
+            for line2 in myfile2:
+                # skip data in first two lines (headers)
+                if (i < 2):
+                    i+=1
+                    continue
+                
+                #  split line by tabs
+                datarow = list(line2.split())
+                
+                if (len(datarow) < 7): 
+                    print("Seems like we've hit a bad line or end of file. ")
+                    break;                  # break if we're on a last empty line
+                
+                t_in.append(float(datarow[0]))
+                scaled_data = [0,0,0,0,0,0]			
+                for j in range(5):
+                    scaled_data[j] = float(datarow[j+1])*scaler[j] # add platform positions
+                Xp_in.append(scaled_data)
+                i += 1
+        else:
+            print("ERROR: could not open ", outFileName)
+            return
+
+        myfile2.close()
+        print("Done reading PtfmMotions.dat. Last line read: ", i)
+
+        Xp_in = np.array(Xp_in)
+
+        # interpolator for platform positions: t_in is vector of time steps from position input file. xp_in is dof
+        ts = 0
+        self.xp = np.zeros((len(self.time),len(Xp_in[0])))
+        for its in range(0, len(self.time)):
+
+            t = its*self.dtC
+            
+            # interpolate platform positions from .out file data, and approximate velocities
+            while ts < (len(t_in)-1):  # search through platform motion data time steps (from .out file)	
+                if (t_in[ts+1] > t):				
+                    frac = ( t - t_in[ts] )/( t_in[ts+1] - t_in[ts] )		# get interpolation fraction
+                    for j in range(0, len(Xp_in[0])):
+                        self.xp[its][j] = Xp_in[ts][j] + frac*( Xp_in[ts+1][j] - Xp_in[ts][j] ) # interpolate for each platform DOF
+                    break
+                ts += 1
+
+        self.xdp = np.zeros((len(self.time),len(Xp_in[0])))
+        xold = np.zeros(len(Xp_in[0]))
+        # calculate velocities using finite difference
+        for i in range(len(self.time)):
+            self.xdp [i] = (self.xp[i] - xold)/self.dtC
+            xold =  self.xp[i]
+        
+        return
+        
+    def sin (self, axis = 0):
+        # axis 0 -> x, 1 -> y, 3 -> z
+        self.xp = np.zeros((len(self.time),6))
+        
+        # Harmonic properties
+        omega = (2*np.pi)/(len(self.time)/2)
+        A = 50
+
+        for i in range(len(self.time)):
+            self.xp[i,axis] = A * np.sin(i*omega)
+
+        self.xdp = np.zeros((len(self.time),6))
+        xold = np.zeros(6)
+        # calculate velocities using finite difference
+        for i in range(len(self.time)):
+            self.xdp [i] = (self.xp[i] - xold)/self.dtC
+            xold =  self.xp[i]
+
+    def load_dynamics(self, static, from_file = False, y_sin = True):
+
+       # initializing
+        self.time = np.arange(0, self.tMax, self.dtC)
+        size = (len(self.time), self.vector_size)
+        self.x = np.zeros(size)
+        self.xd = np.zeros(size)
+
+        if static:
+            self.xdp = np.zeros(len(self.time),6)
+            self.xp = np.zeros(len(self.time),6)
+            for i in range(len(self.time)):
+                self.x[i,:] = self.xi
+
+        elif from_file:
+            self.get_positions()
+            for i in range(len(self.time)):
+                if i == 0:
+                    self.x[i,:] = self.xi
+                else:
+                    j = 0
+                    while j < self.vector_size:
+                        self.x[i,j:j+self.dof] = self.x[i-1,j:j+self.dof] + self.xdp[i, 0:self.dof] * self.dtC
+                        self.xd[i,j:j+self.dof] = self.xdp[i, 0:self.dof]
+                        j += self.dof
+        elif y_sin:
+            self.sin(axis = 1) 
+            for i in range(len(self.time)):
+                if i == 0:
+                    self.x[i,:] = self.xi
+                else:
+                    j = 0
+                    while j < self.vector_size:
+                        self.x[i,j:j+self.dof] = self.x[i-1,j:j+self.dof] + self.xdp[i, 0:self.dof] * self.dtC
+                        self.xd[i,j:j+self.dof] = self.xdp[i, 0:self.dof]
+                        j += self.dof
+
+        return
+
+    def run_v1 (self, dylib = None): 
+        #Double vector pointer data type
+        double_p = ctypes.POINTER(ctypes.c_double)
+        # -------------------- load the MoorDyn DLL ---------------------
+
+        # Make MoorDyn function prototypes and parameter lists (remember, first entry is return type, rest are args)
+        MDInitProto = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(ctypes.c_double*6), ctypes.POINTER(ctypes.c_double*6)) #need to add filename option here, maybe this c_char works? #need to determine char size 
+        MDStepProto = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(ctypes.c_double*6), ctypes.POINTER(ctypes.c_double*6), ctypes.POINTER(ctypes.c_double*6), double_p, double_p)
+        MDClosProto = ctypes.CFUNCTYPE(ctypes.c_int)
+
+        MDInitParams = (1, "x"), (1, "xd")
+        MDStepParams = (1, "x"), (1, "xd"), (2, "f"), (1, "t"), (1, "dtC") 
+
+        if dylib == None:
+            dylib = 'compileDYLIB/MoorDyn.dylib'
+        MDdylib = ctypes.CDLL(dylib) #load moordyn dylib
+
+        MDInit = MDInitProto(("LinesInit", MDdylib), MDInitParams)
+        MDStep = MDStepProto(("LinesCalc", MDdylib), MDStepParams)
+        MDClose= MDClosProto(("LinesClose", MDdylib))
+        # ------------------------ run MoorDyn ---------------------------
+        print("==================================================")    
+        # initialize some arrays for communicating with MoorDyn
+        t  = double_p()    # pointer to t
+        # Converting to ctypes
+        dtC = ctypes.pointer(ctypes.c_double(self.dtC))
+
+        # initialize MoorDyn at origin
+        MDInit((self.xp[0,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*6)),(self.xdp[0,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*6)))
+
+        # loop through coupling time steps
+        print("MoorDyn initialized - now performing calls to MoorDynStep...")
+        for i in range(len(self.time)):
+            t = ctypes.pointer(ctypes.c_double(self.time[i]))
+            MDStep((self.xp[i,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*6)), (self.xdp[i,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*6)), t, dtC)    
+
+        print("Succesffuly simulated for {} seconds - now closing MoorDyn...".format(self.tMax))  
+            
+        # close MoorDyn simulation (clean up the internal memory, hopefully) when finished
+        MDClose()   
+        print("v1 script executed successfully")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++")
+        del MDdylib
+
+    def run_old_API (self, version = None, dylib = None): 
+        print("==================================================")
+        # -------------------- load the MoorDyn DLL ---------------------
+
+        #Double vector pointer data type
+        double_p = ctypes.POINTER(ctypes.c_double)
+
+        # Make MoorDyn function prototypes and parameter lists (remember, first entry is return type, rest are args)
+        MDInitProto = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(ctypes.c_double*self.vector_size), ctypes.POINTER(ctypes.c_double*self.vector_size), ctypes.c_char_p) #need to add filename option here, maybe this c_char works? #need to determine char size 
+        MDStepProto = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(ctypes.c_double*self.vector_size), ctypes.POINTER(ctypes.c_double*self.vector_size), ctypes.POINTER(ctypes.c_double*self.vector_size), double_p, double_p)
+        MDClosProto = ctypes.CFUNCTYPE(ctypes.c_int)
+
+        MDInitParams = (1, "x"), (1, "xd"), (1, "infilename") #guessing the 1 flag here means input?
+        MDStepParams = (1, "x"), (1, "xd"), (2, "f"), (1, "t"), (1, "dtC") 
+
+        if dylib == None:
+            if version == "dev2":
+                dylib_path = "dev2_DYLIB/MoorDyn2.dylib"
+            elif version == "v2old":
+                dylib_path = "v2_DYLIB/libmoordyn2.dylib"
+            else:
+                print("Please specify dev2 or v2 as versions for old_API run")
+                return
+        else:
+            dylib_path = dylib
+
+        print("dylib path is ", dylib_path)
+        MDdylib = ctypes.CDLL(dylib_path) #load moordyn dylib
+
+        filename = self.path+self.rootname+version+self.extension
+
+        MDInit = MDInitProto(("MoorDynInit", MDdylib), MDInitParams)
+        MDStep = MDStepProto(("MoorDynStep", MDdylib), MDStepParams)
+        MDClose= MDClosProto(("MoorDynClose", MDdylib))  
+    # ------------------------ run MoorDyn ---------------------------
+        # initialize some arrays for communicating with MoorDyn
+        t  = double_p()    # pointer to t
+
+        # parameters
+        dtC = ctypes.pointer(ctypes.c_double(self.dtC))
+
+        infile = ctypes.c_char_p(bytes(filename, encoding='utf8'))
+
+        # initialize MoorDyn at origin
+        MDInit((self.x[0,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*self.vector_size)),(self.xd[0,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*self.vector_size)),infile)
+        print("MoorDyn initialized - now performing calls to MoorDynStep...")
+
+        # loop through coupling time steps
+        for i in range(len(self.time)):
+            t = ctypes.pointer(ctypes.c_double(self.time[i]))
+            MDStep((self.x[i,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*self.vector_size)), (self.xd[i,:]).ctypes.data_as(ctypes.POINTER(ctypes.c_double*self.vector_size)), t, dtC)    
+        print("Succesffuly simulated for {} seconds - now closing MoorDyn...".format(self.tMax))  
+
+        # close MoorDyn simulation (clean up the internal memory, hopefully) when finished
+        MDClose()   
+        print("Old API {} script executed successfully".format(version))
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++")
+        del MDdylib
+
+    def run_v2new (self): 
+
+        print("==================================================")
+        print("This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn")
+        system = moordyn.Create(self.path+self.rootname+"v2new"+self.extension)
+        moordyn.Init(system, self.x[0,:], self.xd[0,:])
+        # loop through coupling time steps
+        print("MoorDyn initialized - now performing calls to MoorDynStep...")
+        for i in range(len(self.time)):
+            # call the MoorDyn step function
+            moordyn.Step(system, self.x[i,:], self.xd[i,:], self.time[i], self.dtC)    #force value returned here in array
+
+        print("Successfuly simulated for {} seconds - now closing MoorDyn...".format(self.tMax))  
+
+        # close MoorDyn simulation (clean up the internal memory, hopefully) when finished
+        moordyn.Close(system)   
+
+        print("New API v2 script executed successfully")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++")
+        del system
+
+    def simulate_all (self, run_v1, run_v2n, run_v2o):
         print("System initialized, now simulating versions of MoorDyn")
         if os.path.isfile("MooringTest/*.out") or os.path.isfile("Mooring/*.out"):
             os.system('rm Mooring*/*.out')
@@ -1835,58 +2221,34 @@ class run_infile():
         if len(os.listdir("MooringTest/Outputs")) == 0 :
             os.system('rm MooringTest/Outputs/*')
             os.system('echo "Removed files with .out and .log extension from MooringTest/Outputs/"')
-        os.system("cp {} {}".format(filename+extension,filename+"v2old"+extension))
-        os.system("cp {} {}".format(filename+extension,filename+"dev2"+extension))
+        os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
+        os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"dev2"+self.extension))
 
-        import v2_OldAPI_script
-        v2_OldAPI_script.run(x, xd, tMax, dtC, vector_size, filename+"v2old"+extension)
-        del v2_OldAPI_script
-        
+        self.run_old_API(version = "dev2")
+       
+        if run_v2o:
+            self.run_old_API(version = "v2old")
+
         if run_v2n:
-            os.system("cp {} {}".format(filename+extension,filename+"v2new"+extension))
-            import v2_NewAPI_script
-            v2_NewAPI_script.run(x, xd, tMax, dtC, vector_size, filename+"v2new"+extension)
-            del v2_NewAPI_script
-
-        import dev2_script
-        dev2_script.run(x, xd, tMax, dtC, vector_size, filename+"dev2"+extension)
-        del dev2_script
+            os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2new"+self.extension))
+            self.run_v2new()
 
         if run_v1: 
-            import v1_script
-            v1_script.run(xp, xdp, tMax, dtC, 6)
-            del v1_script
+            self.run_v1()
             os.system("./namechange_v1")
 
         os.system("mv Mooring/Line_Line* MooringTest/Outputs/")
         os.system("mv MooringTest/*.out MooringTest/Outputs/")
         os.system("mv MooringTest/*.log MooringTest/Outputs/")
 
-    def save_outputs(self, path, rootname, extension, remove_version_inputs = True, del_logs = True):
-        os.system("mkdir saved_runs/")
-        os.system("mkdir saved_runs/{}_outputs/".format(rootname)) # TODO: Add a 'if is directory, then skip'
-        os.system("mv MooringTest/*.out saved_runs/{}_outputs/".format(rootname))
-        os.system("mv MooringTest/*.log saved_runs/{}_outputs/".format(rootname))
-        os.system("mv MooringTest/Outputs/* saved_runs/{}_outputs/".format(rootname))
-        os.system("./clean_outputs")
-        if del_logs:
-            os.system("rm saved_runs/{}_outputs/*.log".format(rootname))
-
-        print("-------------------------")
-        print("Output files from versions saved to saved_runs/{}_outputs/".format(rootname))
-        print("Files of the form Line_Line*.out are v1 output files")
-
-        if remove_version_inputs:
-            os.system("rm {}".format(path+rootname+"v2old"+extension))
-            os.system("rm {}".format(path+rootname+"v2new"+extension))
-            os.system("rm {}".format(path+rootname+"dev2"+extension))
-
-    def run(self, rootname, extension, path, tMax, dof, debug = False, run_v1 = False, run_v2n = False, simulate = False, plot = False, fig_options = None):
+    def run(self, rootname, extension, path, tMax, dof, debug = False, run_v1 = False, run_v2n = False, run_v2o = False, simulate = False, plot = False, static = False, fig_options = None):
         #------------------- Set up Mooring line conditions -----------------------------
 
         print("Loading input data...")
-        filename = path+rootname
-
+        self.path = path
+        self.rootname = rootname
+        self.extension = extension
+        self.dof = int(dof)
         from_saved_runs = True
 
         if from_saved_runs:
@@ -1896,503 +2258,81 @@ class run_infile():
 
         inputs = load_infile(in_dirname = path, out_dirname = out_dirname, rootname = rootname, extension = extension)
 
-        vector_size = int(inputs.numfair*dof)
-
-        # initialize some arrays for communicating with MoorDyn
-        x  = (c_double*vector_size)()
-        xd = (c_double*vector_size)()
-        xp = (c_double*6)()
-        xdp = (c_double*6)()
+        self.vector_size = int(inputs.numfair*self.dof)
 
         # parameters
-        dtC = float(inputs.MDoptions["dtM"])
-    
-        depth = float(inputs.MDoptions["WtrDpth"])
+        self.dtC = float(inputs.MDoptions["dtM"])
+        self.tMax = tMax
 
-        # Fairlead locations
+        # Inital fairlead locations
         i=0
+        self.xi = np.zeros(self.vector_size)
         for point in inputs.pointList:
             if point.type == -1:  
-                x[i]=(point.r[0])
-                x[i+1]=(point.r[1])
-                x[i+2]=(point.r[2])
+                self.xi[i]=(point.r[0])
+                self.xi[i+1]=(point.r[1])
+                self.xi[i+2]=(point.r[2])
                 i += dof
 
-        # Platform locations for v1 files, set to orgin for now
-        for i in range(0,len(xp)):
-            xdp[i] = 0.0
-            xp[i] = 0.0
-
-        for i in range(0,len(xd)):
-            xd[i] = 0.0
-
+        self.load_dynamics(static)
         
         print("------------------------------------------------------")
         
         if not debug: 
-
             if simulate: 
                 if run_v1:
                     print("Converting v2 input into v1...")
                     inputs.v1_build(outfile = "Mooring/lines.txt")
 
-                self.simulate_all (x, xd, xp, xdp, tMax, dtC, vector_size, filename, extension, run_v1, run_v2n)
+                self.simulate_all (run_v1, run_v2n, run_v2o)
                 
                 if plot:
                     if fig_options['save_fig']:
                         if not os.path.isdir("saved_runs/"):
                             os.system("mkdir saved_runs/")
-                    self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = False, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, show_rmse = fig_options['show_rmse'], tMax = tMax-1)
+                    self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = False, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, run_v2o = run_v2o, show_rmse = fig_options['show_rmse'], tMax = self.tMax-1)
 
-                self.save_outputs (path, rootname, extension, remove_version_inputs = True, del_logs = True)
+                self.save_outputs (remove_version_inputs = True, del_logs = True)
 
             elif plot:
-                self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = True, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, show_rmse = fig_options['show_rmse'], tMax = tMax)
+                self.figures(inputs, path, rootname, animate_all = fig_options['animate_all'], animate_start_end =  fig_options['animate_start_end'], plot_individual_start_end = fig_options['plot_individual_start_end'], plot_all_start_end = fig_options['plot_all_start_end'], plot2d = fig_options['plot2d'], plot3d = fig_options['plot3d'], save = fig_options['save_fig'], from_saved_runs = True, display = fig_options['display'], run_v1 = run_v1, run_v2n = run_v2n, run_v2o = run_v2o, show_rmse = fig_options['show_rmse'], tMax = self.tMax)
 
             else:
                 print("Please specify appropriate boolean flags. Quitting...")
                 exit()
         
-        else:
+        else: # debugging space
+            inputs.rms_comparison (control = "dev2", display = True, save = False, run_v1 = True, run_v2n = True, run_v2o = True, line_rmse = False, ten_rmse = True, path = "MooringTest/Outputs/")
 
-            simulate = False #simulate with given input
-            save_outputs = False #save output files to different directory 
-            plot = False #plot animation of lines
-            remove_version_inputs = False #delete version copies of input
-            del_logs = False #delete log files
-            run_v1 = True 
-            test_rms = True
-
-            if test_rms:
-                inputs.rms_comparison()
-
-            if simulate: 
-                print("System initialized, now simulating versions of MoorDyn")
-                if os.path.isfile("MooringTest/*.out") or os.path.isfile("Mooring/*.out"):
-                    os.system('rm Mooring*/*.out')
-                    os.system('echo "Removed files with .out extension from Mooring*"')
-
-                if os.path.isfile("MooringTest/*.log") or os.path.isfile("Mooring/*.log"):
-                    os.system('rm Mooring*/*.log')
-                    os.system('echo "Removed files with .log extension from Mooring*"')
-
-                if len(os.listdir("MooringTest/Outputs")) == 0 :
-                    os.system('rm MooringTest/Outputs/*')
-                    os.system('echo "Removed files with .out and .log extension from MooringTest/Outputs/"')
-                os.system("cp {} {}".format(filename+extension,filename+"v2old"+extension))
-                os.system("cp {} {}".format(filename+extension,filename+"v2new"+extension))
-                os.system("cp {} {}".format(filename+extension,filename+"dev2"+extension))
-
-                import v2_OldAPI_script
-                v2_OldAPI_script.run(x, xd, tMax, dtC, vector_size, filename+"v2old"+extension)
-                del v2_OldAPI_script
-                
-                import v2_NewAPI_script
-                v2_NewAPI_script.run(x, xd, tMax, dtC, vector_size, filename+"v2new"+extension)
-                del v2_NewAPI_script
-
-                import dev2_script
-                dev2_script.run(x, xd, tMax, dtC, vector_size, filename+"dev2"+extension)
-                del dev2_script
-
-                if run_v1: 
-                    import v1_script
-                    v1_script.run(xp, xdp, tMax, dtC, 6)
-                    del v1_script
-                    os.system("./namechange_v1")
-
-                os.system("mv Mooring/Line_Line* MooringTest/Outputs/")
-                os.system("mv MooringTest/*.out MooringTest/Outputs/")
-                os.system("mv MooringTest/*.log MooringTest/Outputs/")
-
-            if plot:
-                # copy of display function, but can comment out lines
-                animate_all = False
-                animate_start_end = False
-                plot_individual_start_end = False
-                plot_all_start_end = False
-                plot2d = False
-                plot3d = False
-                from_saved_runs = False
-                display = True
-                run_v1 = False, 
-                tMax = None
-
-                instance = inputs
-                         
-                if plot_all_start_end or plot_individual_start_end:
-                    if not (plot2d or plot3d):
-                        print("For plotting, please specify 2d or 3d. Ending plot function...")
-                        return
-
-                if animate_all:
-                    fig1 = plt.figure() 
-                    ax1 = plt.axes(projection='3d')
-                    if not from_saved_runs:
-                        v2oanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
-                        v2nanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
-                        dev2anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
-                        if run_v1:
-                            v1anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = path+"Outputs/", rootname = "Line", color = "g", start_end_ani = False)
-
-                        print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
-                    else: 
-                        v2oanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = False)
-                        v2nanmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = False)
-                        dev2anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = False)
-                        if run_v1:
-                            v1anmi = load_infile.plot_animation(instance, fig = fig1, ax = ax1, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = False)
-                    print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
-            
-                elif animate_start_end:
-                    fig2 = plt.figure() 
-                    ax2 = plt.axes(projection='3d')
-
-                    if not from_saved_runs: 
-                        v2oanmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = path+"Outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = True)
-                        v2nanmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = path+"Outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = True)
-                        dev2anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = path+"Outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = True)
-                        if run_v1:
-                            v1anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = path+"Outputs/", rootname = "Line", color = "g", start_end_ani = True)
-                    else: 
-                        v2oanmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", color = "r", start_end_ani = True)
-                        v2nanmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", color = "y", start_end_ani = True)
-                        dev2anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", color = "b", start_end_ani = True)
-                        if run_v1:
-                            v1anmi = load_infile.plot_animation(instance, fig = fig2, ax = ax2, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", color = "g", start_end_ani = True)
-                    print("v2old is red, v2new is yellow, dev2 is blue, and v1 is green")
-
-                elif plot_all_start_end and plot_individual_start_end:
-                    if tMax == None:
-                        print("Please specify tmax for plotting end timestep. Ending plot function...")
-                        return
-                    
-                    if plot2d and plot3d:
-                        print("Creating individual 2d and 3d plots...")
-                        threedim = {'projection':'3d'}
-                        fig3, ax3 = plt.subplots(2,2, figsize=[6,4])
-                        fig4, ax4 = plt.subplots(2,2, subplot_kw = threedim)
-                        print("Creating 3d and 2d plot of all versions...")
-                        fig5, ax5 = plt.subplots(1,2, figsize = [6,2])
-                        fig6, ax6 = plt.subplots(1,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2oplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            v2nplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            dev2plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-                                v1plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2oplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            v2nplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            dev2plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot3 =load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot4 =load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-                                v1plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        fig4.tight_layout()
-                        fig4.savefig(rootname+"_individual_3dplot.png", dpi = 300)
-                        fig3.tight_layout()
-                        fig3.savefig(rootname+"_individual_2dplot.png", dpi = 300)
-                        fig6.tight_layout()
-                        fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)  
-                        fig5.tight_layout()
-                        fig5.savefig(rootname+"_all_2dplot.png", dpi = 300)
-
-                    elif plot2d:
-                        print("Creating individual 2d plots...")
-                        fig3, ax3 = plt.subplots(2,2, figsize=[6,4])
-                        print("Creating 2d plot of all versions...")
-                        fig5, ax5 = plt.subplots(1,2, figsize = [6,2])
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot =load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        fig3.tight_layout()
-                        fig3.savefig(rootname+"_individual_2dplot.png", dpi = 300)
-                        fig5.tight_layout()
-                        fig5.savefig(rootname+"_all_2dplot.png", dpi = 300)
-                    
-                    elif plot3d:
-                        print("Creating individual 3d plots...")
-                        threedim = {'projection':'3d'}
-                        fig4, ax4 = plt.subplots(2,2, subplot_kw = threedim)
-                        print("Creating 3d plot of all versions...")
-                        fig6, ax6 = plt.subplots(1,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot =load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        fig4.tight_layout()
-                        fig4.savefig(rootname+"_individual_3dplot.png", dpi = 300)
-                        fig6.tight_layout()
-                        fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)
-                    
-                    if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
-                        os.system("mkdir saved_runs/figures/{}".format(rootname))
-                    os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-
-                    
-                elif plot_individual_start_end:
-                    if tMax == None:
-                        print("Please specify tmax for plotting end timestep. Ending plot function...")
-                        return
-
-                    if plot2d and plot3d:
-                        print("Creating individual 2d and 3d plots...")
-                        fig3, ax3 = plt.subplots(2,2, figsize=[6,4])
-                        threedim = {'projection':'3d'}
-                        fig4, ax4 = plt.subplots(2,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-
-                        else:
-                            v2oplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2oplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            v2nplot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot3 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            dev2plot4 = load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot3 =load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                                v1plot4 =load_infile.plot_start_end(instance, plot2d = False, fig = fig4, ax = ax4[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-
-                        fig4.tight_layout()
-                        fig4.savefig(rootname+"_individual_3dplot.png", dpi = 300)
-                        fig3.tight_layout()
-                        fig3.savefig(rootname+"_individual_2dplot.png", dpi = 300)
-
-                    elif plot2d:
-                        print("Creating individual 2d plots...")
-                        fig3, ax3 = plt.subplots(2,2, figsize=[6,4])
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot =load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig3, ax = ax3[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                        
-                        fig3.tight_layout()
-                        fig3.savefig(rootname+"_individual_2dplot.png", dpi = 300)
-                    
-                    elif plot3d:
-                        print("Creating individual 3d plots...")
-                        threedim = {'projection':'3d'}
-                        fig4, ax4 = plt.subplots(2,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][0], path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][1], path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][0], path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][1], path = path+"Outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[0][1], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][0], path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", tMax = tMax)
-                            if run_v1:
-                                v1plot =load_infile.plot_start_end(instance, fig = fig4, ax = ax4[1][1], path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", tMax = tMax)
-                        fig4.tight_layout()
-                        fig4.savefig(rootname+"_individual_3dplot.png", dpi = 300)
-                    
-                    if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
-                        os.system("mkdir saved_runs/figures/{}".format(rootname))
-                    os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-                    print("{}_individual_*.png saved to saved_runs/figures/".format(rootname))
-                    
-                elif plot_all_start_end: 
-                    if tMax == None:
-                        print("Please specify tmax for plotting end timestep. Ending plot function...")
-                        return
-
-                    if plot2d and plot3d:
-                        print("Creating 3d and 2d plot of all versions...")
-                        threedim = {'projection':'3d'}
-                        fig5, ax5 = plt.subplots(1,2, figsize = [6,2])
-                        fig6, ax6 = plt.subplots(1,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2oplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            v2nplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            dev2plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-                                v1plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2oplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            v2nplot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            dev2plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot1 = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-                                v1plot2 = load_infile.plot_start_end(instance, plot2d = False, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        fig6.tight_layout()
-                        fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)  
-                        fig5.tight_layout()
-                        fig5.savefig(rootname+"_all_2dplot.png", dpi = 300)
-                    
-                    elif plot2d: 
-                        print("Creating 2d plot of all versions...")
-                        fig5, ax5 = plt.subplots(1,2, figsize = [6,2])
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, plot2d = plot2d, fig = fig5, ax = ax5, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        fig5.tight_layout()
-                        fig5.savefig(rootname+"_all_2dplot.png", dpi = 300)
-
-                    elif plot3d:
-                        print("Creating 3d plot of all versions...")
-                        threedim = {'projection':'3d'}
-                        fig6, ax6 = plt.subplots(1,2, subplot_kw = threedim)
-                        if not from_saved_runs:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = path+"Outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-
-                        else:
-                            v2oplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2old", md_branch = "v2old", color = "r", tMax = tMax)
-                            v2nplot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"v2new", md_branch = "v2new", color = "y", tMax = tMax)
-                            dev2plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = rootname+"dev2", md_branch = "dev2", color = "b", tMax = tMax)
-                            if run_v1:
-                                v1plot = load_infile.plot_start_end(instance, fig = fig6, ax = ax6, path = "saved_runs/"+rootname+"_outputs/", rootname = "Line", md_branch = "v1", color = "g", tMax = tMax)
-                        fig6.tight_layout()
-                        fig6.savefig(rootname+"_all_3dplot.png", dpi = 300)  
-                    
-                    if not os.path.isdir("saved_runs/figures/{}".format(rootname)):
-                        os.system("mkdir saved_runs/figures/{}".format(rootname))
-                    os.system("mv {}*.png saved_runs/figures/{}/".format(rootname,rootname))
-                    
-                else:
-                    print("Spececify an option to make an annimation or plot. Ending plot function...")
-                    return
-
-                if display:
-                    print("Displaying figure...")
-                    plt.show()
-
-
-            if remove_version_inputs:
-                os.system("rm {}".format(filename+"v2old"+extension))
-                os.system("rm {}".format(filename+"v2new"+extension))
-                os.system("rm {}".format(filename+"dev2"+extension))
-        
         plt.close('all')
 
         print("------------end--------------")
 
 if __name__ == "__main__":
-     #------------------- Run All Scripts -----------------------------
+    #------------------- Run All Scripts -----------------------------
 
     # Flags for running
-    debug = False 
+   
     run_v1 = True
     run_v2n = True
-    simulate = False
+    run_v2o = True
+    static = False
+
+    debug = False
+    simulate = True
     plot = True
 
     fig_options = {}
     if plot:
     # Note: This only apply if plot boolean is true
     # Flags for plotting: can only plot indidvual or all, not both. If both are true, only individual runs
-        fig_options = {'animate_all' : False, 'animate_start_end' : False, 'plot2d' : False, 'plot3d' : True, 'plot_individual_start_end' : False, 'plot_all_start_end' : True, 'display' : True, 'save_fig' : True, 'show_rmse' : True}
+        fig_options = {'animate_all' : True, 'animate_start_end' : False, 'plot2d' : False, 'plot3d' : False, 'plot_individual_start_end' : False, 'plot_all_start_end' : False, 'display' : True, 'save_fig' : False, 'show_rmse' : True}
     
     #TODO: figure out why plot_animation and plot_start_end are giving different pictures for the final timestep
         # plot_start_end is the correct output, verified by MoorPy
+        # plot_animation is wierd when plotting multiple files. Only the last one is animated, all others are stuck at time step 0
 
-    rootname = "case4" 
+    rootname = "cable" 
     extension = ".dat"
     path = "MooringTest/"
 
@@ -2401,4 +2341,4 @@ if __name__ == "__main__":
     dof = 3 # Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods. Ex for three points, size should be 9. 
 
     instance = run_infile()
-    run_infile.run(instance, rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, run_v2n = run_v2n, simulate = simulate, plot = plot, fig_options = fig_options)
+    run_infile.run(instance, rootname = rootname, extension = extension, path = path, tMax = tMax, dof = dof, debug = debug, run_v1 = run_v1, run_v2n = run_v2n, run_v2o = run_v2o, simulate = simulate, plot = plot, fig_options = fig_options, static = static)
