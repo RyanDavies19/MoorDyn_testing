@@ -1,0 +1,7 @@
+cd Mooring/
+OUTFILES=$(ls Line*.out)
+for FILE in $OUTFILES
+do
+cp $FILE Line_$FILE 
+done
+cd -
