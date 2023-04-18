@@ -12,7 +12,7 @@ Node Type      X     Y      Z     M    V   CdA   CA
 1   Fixed  -400.0   0.0     0.0    0    0    0    0
 2   Free      0.0   0.0  -100.0    0   200   0    0
 3   Free      0.0 200.0  -100.0    0    0    0    0
-4   Fixed     0.0 400.0     0.0    0    0    0    0
+4   Vessel     0.0 400.0     0.0    0    0    0    0
 ---------------------- LINES --------------------------------------       
 Line  LineType NodeAnch  NodeFair UnstrLen  NumSegs    Flags/Outputs                   
 (-)   (-)      (-)       (-)      (m)       (-)        (-)                 
@@ -29,8 +29,8 @@ Line  LineType NodeAnch  NodeFair UnstrLen  NumSegs    Flags/Outputs
 0.0     TmaxIC    - max time for ic gen (s)
 4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
 0.001    threshIC  - threshold for IC convergence (-) 
-1             dtOut                                      
+0.1             dtOut                                      
 ------------------------ OUTPUTS --------------------------------------------                                             
-FAIRTEN1
+FAIRTEN3
 ------------------------- need this line --------------------------------------                                                                                     
                                             

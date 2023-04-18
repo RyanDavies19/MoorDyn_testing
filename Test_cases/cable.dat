@@ -11,7 +11,7 @@ Node      Type      X      Y         Z        M       V      CdA   Ca
 1       Fixed    -800      0      -600        0       0       0    0
 2       Free     -300      0      -300        0       0       0    0
 3       Free     -100      0      -300        0       0       0    0
-4       Fixed     0      0         0        0       0       0    0   NOTE: this was coupled before
+4       Vessel     0      0         0        0       0       0    0   NOTE: this was coupled before
 ---------------------- LINES -----------------------------------------------------
 Line     LineType   NodeA     NodeB   UnstrLen  NumSegs   Flags/Outputs
 (-)       (-)       (-)       (-)       (m)       (-)         (-)
@@ -27,7 +27,7 @@ Line     LineType   NodeA     NodeB   UnstrLen  NumSegs   Flags/Outputs
 5.0      ICDfac       - factor by which to scale drag coefficients during dynamic relaxation IC gen
 0.0001   ICthresh      - threshold for IC convergence
 0        TmaxIC        - threshold for IC convergence
-1             dtOut     
----------------------- OUTPUT -----------------------------------------
-FAIRTEN1
+0.1             dtOut     
+---------------------- OUTPUTS -----------------------------------------
+FAIRTEN3
 --------------------- need this line ------------------
