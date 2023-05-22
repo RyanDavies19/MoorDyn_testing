@@ -8,6 +8,7 @@ developing.py
 *.png
 *.out
 *.log
+*.txt
 static_runs/
 dynamic_runs/
 outdated_scripts/

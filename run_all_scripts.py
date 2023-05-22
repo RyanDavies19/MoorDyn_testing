@@ -1352,6 +1352,7 @@ class load_infile():
         plot3d = plot_args.get('plot3d', False)
         plot2d = plot_args.get('plot2d', True)
         from_saved_runs = plot_args.get('from_saved_runs', True)
+        outputs_dir = plot_args.get('outputs_dir' , 'saved_runs/')
         plot_tRange = plot_args.get('plot_tRange', None)
 
         self.tMax = int(tMax) # redundant
@@ -1363,8 +1364,10 @@ class load_infile():
         self.plot_tRange = plot_tRange
         
         if from_saved_runs:
-            self.out_dirname =  "saved_runs/"+self.rootname+"_outputs/"
-            print("Plotting from data in saved_runs/{}_outputs/".format(self.rootname))
+            if outputs_dir == None:
+                outputs_dir = 'saved_runs/'
+            self.out_dirname = outputs_dir+self.rootname+'_outputs/'
+            print('Plotting from data in {}{}_outputs/'.format(outputs_dir, self.rootname))
         else:
             self.out_dirname = 'MooringTest/Outputs/'
         
@@ -1426,7 +1429,7 @@ class load_infile():
             colors.remove('green')
         if not run_v2n:
             version_list.remove('v2new')
-            colors.remove('maroon')
+            colors.remove('red')
         if not run_v2o:
             version_list.remove('v2old')
             colors.remove('orange')
@@ -1465,7 +1468,8 @@ class load_infile():
             if lines_and_tens:
                 self.plot_ten(ax0[3], colors[j])
             if animate_all:
-                pass
+                anim = self.animateLines(ax = ax4, fig = fig4)
+                plt.show()
             if animate_start_end:
                 pass
             if plot_individual_start_end:
@@ -1485,10 +1489,13 @@ class load_infile():
             if lines_and_tens:
                 fig0.suptitle('{}: Position RMS error ({} comparison)'.format(self.rootname, control))
                 fig0.supxlabel('Time (s)')
-                ax0[1].set_ylabel('Position RMS error (m)',)
+                ax0[1].set_ylabel('Position RMS error (m)')
                 ax0[3].set_title(self.rootname+': Line tensions (kN)')
                 ax0[3].legend(version_list, loc = 1)
                 ax0[3].set_ylabel('Tension (kN)')
+                for i in range(0,3):
+                    ax0[i].yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.2e'))
+                    # ax0[i].ticklabel_format(axis = 'y', style = 'sci', scilimits= (-3,3))
 
                 fig0.tight_layout()
 
@@ -1575,14 +1582,14 @@ class load_infile():
                     if plot3d:
                         fig9.savefig(self.rootname+"_all3d.png", dpi = 300)
 
-                if not os.path.isdir("saved_runs/"):
-                    os.system("mkdir saved_runs/")
-                if not os.path.isdir("saved_runs/figures/"):
-                    os.system("mkdir saved_runs/figures/")
-                if not os.path.isdir("saved_runs/figures/{}".format(self.rootname)):
-                    os.system("mkdir saved_runs/figures/{}/".format(self.rootname))
-                os.system("mv {}*.png saved_runs/figures/{}/".format(self.rootname,self.rootname))
-                print("{}*.png saved to saved_runs/figures/".format(self.rootname))
+                if not os.path.isdir(outputs_dir):
+                    os.system('mkdir {}'.format(outputs_dir))
+                if not os.path.isdir('{}/figures/'.format(outputs_dir)):
+                    os.system('mkdir {}/figures/'.format(outputs_dir))
+                if not os.path.isdir('{}/figures/{}'.format(outputs_dir, self.rootname)):
+                    os.system('mkdir {}/figures/{}'.format(outputs_dir, self.rootname))
+                os.system('mv {}*.png {}/figures/{}/'.format(self.rootname, outputs_dir, self.rootname))
+                print('{}*.png saved to {}/figures/'.format(outputs_dir, self.rootname))
         else:
             print('Warning: Display and save figures booleans are false')
 
@@ -1730,6 +1737,7 @@ class run_infile():
                         self.xd[i,j:j+self.dof] = self.xdp[i, 0:self.dof]
                         j += self.dof
         elif x_sin:
+            print('Sin x driving function')
             self.sin() 
             for i in range(len(self.time)):
                 if i == 0:
@@ -1887,11 +1895,12 @@ class run_infile():
             os.system('echo "Removed files with .out and .log extension from MooringTest/Outputs/"')
        
         os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"dev2"+self.extension))
-        self.run_old_API(version = "dev2")
+        
+        self.run_old_API(version = "dev2", dylib= '/Users/rdavies/work/MoorDyn_branch/compile/DYLIB/MoorDyn2.dylib')
        
         if run_v2o:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
-            self.run_old_API(version = "v2old")
+            self.run_old_API(version = "v2old", dylib = '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/libmoordyn2.dylib')
 
         if run_v2n:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2new"+self.extension))
@@ -1979,8 +1988,10 @@ class run_infile():
                 exit()
         
         else: # debugging space
-            pass
-        
+            os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
+            self.run_old_API(version = "v2old", dylib= '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/libmoordyn2.dylib')
+            os.system("rm *v2old*")
+
         if plot:
             plt.close('all')
 
@@ -1991,10 +2002,10 @@ if __name__ == "__main__":
 
     # Flags for running
    
-    versions = {'run_v1' : True, 'run_v2n' : True, 'run_v2o' : True}
+    versions = {'run_v1' : False, 'run_v2n' : False, 'run_v2o' : True}
     
-    dynamics_args = {'static' : False, 
-                     'x_sin' : True, 
+    dynamics_args = {'static' : True, 
+                     'x_sin' : False, 
                      'from_file' : False, 
                      'period' : 10, 
                      'A' : 10, 
@@ -2003,16 +2014,17 @@ if __name__ == "__main__":
     run_args = {'debug' : False, 
                 'simulate' : True,
                 'plot' : True,
-                'rootname' : 'case4' ,
+                'del_logs' : False,
+                'rootname' : 'case1' ,
                 'extension' : '.dat', 
                 'path' : 'MooringTest/', 
-                'tMax' : 300.0,  # simulation duration (s)
+                'tMax' : 10.0,  # simulation duration (s)
                 'dof' : 3} # Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods. Ex for three points, size should be 9. 
 
     plot_args = {}
     if run_args['plot']:
-        plot_args = {'display': False, 
-                     'save': True,    
+        plot_args = {'display': True, 
+                     'save': False,    
                      'line_rmse': False, 
                      'ten_rmse': False, 
                      'plot_ten': False,
@@ -2020,11 +2032,12 @@ if __name__ == "__main__":
                      'animate_all': False,
                      'animate_start_end': False,
                      'plot_individual_start_end': False,
-                     'plot_all_start_end': False,
+                     'plot_all_start_end': True,
                      'plot3d': False,
-                     'plot2d': False,
-                     'from_saved_runs': True,
-                     'plot_tRange': (200,250)}
+                     'plot2d': True,
+                     'from_saved_runs': False,
+                    #  'outputs_dir' : 'dynamic_runs/',
+                     'plot_tRange': (0,8)} # TODO: make the upper bound here be the timestep that plot start end plots as the 'end'
 
     instance = run_infile(plot_args, dynamics_args, versions)
     instance.run(run_args = run_args)

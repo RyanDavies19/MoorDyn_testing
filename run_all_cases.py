@@ -6,15 +6,15 @@ if __name__ == "__main__":
     # Flags for running
     versions = {'run_v1' : True, 'run_v2n' : True, 'run_v2o' : True}
     
-    dynamics_args = {'static' : True, 
-                     'x_sin' : False, 
+    dynamics_args = {'static' : False, 
+                     'x_sin' : True, 
                      'from_file' : False, 
                      'period' : 10, 
                      'A' : 10, # Amplitude of driving funtion
                      'axis' : 0} # Axis of oscillation x: 0, y: 1, z: 2
 
     run_args = {'debug' : False, 
-                'simulate' : True,
+                'simulate' : False,
                 'plot' : True,
                 'rootname' : '' ,
                 'extension' : '', 
@@ -33,11 +33,12 @@ if __name__ == "__main__":
                      'animate_all': False,
                      'animate_start_end': False,
                      'plot_individual_start_end': False,
-                     'plot_all_start_end': True,
+                     'plot_all_start_end': False,
                      'plot3d': False,
-                     'plot2d': True,
-                     'from_saved_runs': False,
-                     'plot_tRange': (0,100)}
+                     'plot2d': False,
+                     'from_saved_runs': True,
+                     'outputs_dir' : 'saved_runs/',
+                     'plot_tRange': (30,100)}
 
     # Read in a list of files in MooringTest
     os.system('OS_scripts/clean_outputs')
