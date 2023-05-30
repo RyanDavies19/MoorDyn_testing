@@ -55,8 +55,6 @@ class load_infile():
 
             # So that timeseries data is not loaded multiple times by plot_start_end and plot_animation
             self.md_branch_old = ""
-            self.first_plot = True # TODO: This and timeseries_not_loaded are redundant 
-            self.timeseries_not_loaded = True
 
         else:
             print("Warning: input file empty, water depth unknown for plotting ouputs")
@@ -654,6 +652,9 @@ class load_infile():
             os.system("mv Mooring/lines.txt Mooring/lines_archived.txt")
             print("Mooring/lines.txt moved to Mooring/lines_archived.txt to protect from overwriting.")
             print("Mooring/lines_archived.txt will be overwritten next run of run_all_scripts.py")
+        
+        if not os.path.exists("Mooring/"):
+                os.mkdir("Mooring/")
 
         self.unload(outfile, MDversion_out = 1, MDversion_in = 2, flag = flag, outputList = self.outputList)
 
@@ -775,7 +776,7 @@ class load_infile():
         if draw_body:
             for body in self.bodyList:
                 body.draw(ax)
-        
+
         for rod in self.rodList:
             if len(self.rodList)==0:    # usually, there are no rods in the rodList
                 pass
@@ -783,7 +784,7 @@ class load_infile():
                 #if self.qs==0 and len(rod.Tdata) == 0:
                 #    pass
                 if isinstance(rod, mp.Line) and rod.show:
-                    rod.drawLine(time, ax, color=color, shadow=shadow)
+                    rod.drawLine(time, ax, color='black', shadow=shadow)
                 #if isinstance(rod, Point):  # zero-length special case
                 #    not plotting points for now
             
@@ -969,7 +970,7 @@ class load_infile():
             
         for rod in self.rodList:
             if isinstance(rod, mp.Line):
-                rod.drawLine2d(time, ax, color=color, Xuvec=Xuvec, Yuvec=Yuvec)
+                rod.drawLine2d(time, ax, color='black', Xuvec=Xuvec, Yuvec=Yuvec)
             
         if draw_fairlead:
             for line in self.lineList:
@@ -1153,29 +1154,29 @@ class load_infile():
                                         # works well when np.arange(...nFrames...) is used. Others iterable ways to do this
         return line_ani
  
-    def plot_start_end(self, plot2d = False, plot_all = False, color = None, ax= None):
+    def plot_start_end(self, plot2d = False, plot_all = False, color = None, ax= None, draw_body = False):
         
         tMax = self.lineList[0].Tdata[-1]
         tMin = self.lineList[0].Tdata[0]
 
         if plot_all:
             if plot2d:
-                self.plot2d(ax=ax[0], bounds='rbound', rbound=0, color=color, time = tMin)
-                self.plot2d(ax=ax[1], bounds='rbound', rbound=0, color=color, time = tMax-1)
+                self.plot2d(ax=ax[0], bounds='rbound', rbound=0, color=color, time = tMin, draw_body = draw_body)
+                self.plot2d(ax=ax[1], bounds='rbound', rbound=0, color=color, time = tMax-1, draw_body = draw_body)
             else:
-                self.plot(ax=ax[0], bounds='default', rbound=0, color=color, time = tMin)
-                self.plot(ax=ax[1], bounds='default', rbound=0, color=color, time = tMax-1)
+                self.plot(ax=ax[0], bounds='default', rbound=0, color=color, time = tMin, draw_body = draw_body)
+                self.plot(ax=ax[1], bounds='default', rbound=0, color=color, time = tMax-1, draw_body = draw_body)
 
             ax[0].set_title("tMin = {}".format(tMin))
             ax[1].set_title("tMax-1 = {}".format(tMax-1))
 
         else:
             if plot2d:
-                self.plot2d(ax=ax, bounds='rbound', rbound=0, color = 'r', time = tMin)
-                self.plot2d(ax=ax, bounds='rbound', rbound=0, color= 'b', time = tMax-1)
+                self.plot2d(ax=ax, bounds='rbound', rbound=0, color = 'r', time = tMin, draw_body = draw_body)
+                self.plot2d(ax=ax, bounds='rbound', rbound=0, color= 'b', time = tMax-1, draw_body = draw_body)
             else:
-                self.plot(ax=ax, bounds='default', rbound=0, color= 'r', time = tMin)
-                self.plot(ax=ax, bounds='default', rbound=0, color= 'b', time = tMax-1)
+                self.plot(ax=ax, bounds='default', rbound=0, color= 'r', time = tMin, draw_body = draw_body)
+                self.plot(ax=ax, bounds='default', rbound=0, color= 'b', time = tMax-1, draw_body = draw_body)
 
             ax.set_title(self.rootname+self.version)
 
@@ -1288,6 +1289,7 @@ class load_infile():
         ax.plot(data4[:,0], rmse/1000)
         
     def plot_ten(self, ax, color):
+
         if self.version == self.control:
             data = self.con_ten_data
         else:
@@ -1336,6 +1338,7 @@ class load_infile():
         
         # options
         run_v1 = versions.get('run_v1', True)
+        run_dev2 = versions.get('run_dev2', True)
         run_v2n = versions.get('run_v2n', True)
         run_v2o = versions.get('run_v2o', True)
 
@@ -1354,6 +1357,7 @@ class load_infile():
         from_saved_runs = plot_args.get('from_saved_runs', True)
         outputs_dir = plot_args.get('outputs_dir' , 'saved_runs/')
         plot_tRange = plot_args.get('plot_tRange', None)
+        draw_body = plot_args.get('draw_body', False)
 
         self.tMax = int(tMax) # redundant
         self.dtC = float(self.MDoptions['dtM'])
@@ -1371,27 +1375,6 @@ class load_infile():
         else:
             self.out_dirname = 'MooringTest/Outputs/'
         
-        if line_rmse or plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end or lines_and_tens:
-            # loading control in cases where line data is needed. Loading outside of line objects becasue need to reference two data sets simutaneously 
-            self.control_Tdata = [None]*len(self.lineList)
-            self.control_nNodes = [None]*len(self.lineList)
-            self.control_xp = [None]*len(self.lineList)
-            self.control_yp = [None]*len(self.lineList)
-            self.control_zp = [None]*len(self.lineList)
-            i = 0
-            for line in self.lineList:
-                line.loadData(self.out_dirname, self.rootname+control, sep = '_') # remember number starts on 1 rather than 0
-                self.control_Tdata[i] = line.Tdata
-                self.control_nNodes[i] = line.nNodes
-                self.control_xp[i] = line.xp
-                self.control_yp[i] = line.yp
-                self.control_zp[i] = line.zp
-                i += 1
-        
-        if ten_rmse or plot_ten or lines_and_tens:
-            # loading control in cases where tension data is needed
-            self.con_ten_data, self.con_ten_ch, self.con_ten_channels, self.con_ten_units = read_mooring_file(self.out_dirname, self.rootname+control+'.out')
-
         # Creating figures
         if lines_and_tens:
             fig0, ax0 = plt.subplots(4,1, sharex = True, figsize = (8,6), gridspec_kw={'height_ratios':(1,1,1,3)})
@@ -1417,13 +1400,15 @@ class load_infile():
                 fig9, ax9 = plt.subplots(1,2, subplot_kw = {'projection':'3d'})
 
         # Preparing  for loop
-        self.control = control
         version_list = ['dev2', 'v2new', 'v2old', 'v1']
         colors = ['green', 'orange', 'blue', 'red']
         if version_list[0] != control:
             # control version required to be first 
             version_list.remove(control)
             version_list.insert(0,control)
+        if not run_dev2:
+            version_list.remove('dev2')
+            colors.remove('blue')
         if not run_v1:
             version_list.remove('v1')
             colors.remove('green')
@@ -1433,7 +1418,33 @@ class load_infile():
         if not run_v2o:
             version_list.remove('v2old')
             colors.remove('orange')
+        if len(version_list) == 1:
+            control = version_list[0]
+        self.control = control
+
+        if line_rmse or plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end or lines_and_tens:
+            # loading control in cases where line data is needed. Loading outside of line objects becasue need to reference two data sets simutaneously 
+            self.control_Tdata = [None]*len(self.lineList)
+            self.control_nNodes = [None]*len(self.lineList)
+            self.control_xp = [None]*len(self.lineList)
+            self.control_yp = [None]*len(self.lineList)
+            self.control_zp = [None]*len(self.lineList)
+            i = 0
+            for rod in self.rodList:
+                rod.loadData(self.out_dirname, self.rootname+control, sep = '_')
+            for line in self.lineList:
+                line.loadData(self.out_dirname, self.rootname+control, sep = '_') # remember number starts on 1 rather than 0
+                self.control_Tdata[i] = line.Tdata
+                self.control_nNodes[i] = line.nNodes
+                self.control_xp[i] = line.xp
+                self.control_yp[i] = line.yp
+                self.control_zp[i] = line.zp
+                i += 1
         
+        if ten_rmse or plot_ten or lines_and_tens:
+            # loading control in cases where tension data is needed
+            self.con_ten_data, self.con_ten_ch, self.con_ten_channels, self.con_ten_units = read_mooring_file(self.out_dirname, self.rootname+control+'.out')
+
         i = 0
         j = 0
         for version in version_list:
@@ -1474,14 +1485,14 @@ class load_infile():
                 pass
             if plot_individual_start_end:
                 if plot2d:
-                    self.plot_start_end(plot2d = True, ax = ax6[j//2][int(j%2 != 0)])
+                    self.plot_start_end(plot2d = True, ax = ax6[j//2][int(j%2 != 0)], draw_body = draw_body)
                 if plot3d:
-                    self.plot_start_end(ax= ax7[j//2][int(j%2 != 0)])
+                    self.plot_start_end(ax= ax7[j//2][int(j%2 != 0)], draw_body = draw_body)
             if plot_all_start_end:
                 if plot2d:
-                    self.plot_start_end(plot2d = True, plot_all = True, ax = ax8, color = colors[j])
+                    self.plot_start_end(plot2d = True, plot_all = True, ax = ax8, color = colors[j], draw_body = draw_body)
                 if plot3d:
-                    self.plot_start_end(ax = ax9, plot_all = True, color = colors[j])
+                    self.plot_start_end(ax = ax9, plot_all = True, color = colors[j], draw_body = draw_body)
             j += 1
 
         if display or save:
@@ -1713,12 +1724,11 @@ class run_infile():
         x_sin = self.dynamics_args.get('x_sin', True)
         from_file = self.dynamics_args.get('from_file', False)
 
-       # initializing
+        # initializing
         self.time = np.arange(0, self.tMax, self.dtC)
         size = (len(self.time), self.vector_size)
         self.x = np.zeros(size)
         self.xd = np.zeros(size)
-
         if static:
             self.xdp = np.zeros((len(self.time),6))
             self.xp = np.zeros((len(self.time),6))
@@ -1859,6 +1869,10 @@ class run_infile():
         print("==================================================")
         print("This runs the python wrapper of MoorDynV2, it does not reference the local MoorDyn copy that is being edited in ../MoorDyn")
         system = moordyn.Create(self.path+self.rootname+"v2new"+self.extension)
+        print(self.x[0,:])
+        print(self.xd[0,:])
+        print(self.x[1,:])
+        print(self.xd[1,:])
         moordyn.Init(system, self.x[0,:], self.xd[0,:])
         # loop through coupling time steps
         print("MoorDyn initialized - now performing calls to MoorDynStep...")
@@ -1878,6 +1892,7 @@ class run_infile():
     def simulate_all (self):
 
         run_v1 = self.versions.get('run_v1', True)
+        run_dev2 = self.versions.get('run_dev2', True)
         run_v2n = self.versions.get('run_v2n', True)
         run_v2o = self.versions.get('run_v2o', True)
 
@@ -1894,9 +1909,10 @@ class run_infile():
             os.system('rm MooringTest/Outputs/*')
             os.system('echo "Removed files with .out and .log extension from MooringTest/Outputs/"')
        
-        os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"dev2"+self.extension))
         
-        self.run_old_API(version = "dev2", dylib= '/Users/rdavies/work/MoorDyn_branch/compile/DYLIB/MoorDyn2.dylib')
+        if run_dev2:
+            os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"dev2"+self.extension))
+            self.run_old_API(version = "dev2", dylib= '/Users/rdavies/work/MoorDyn_branch/compile/DYLIB/MoorDyn2.dylib')
        
         if run_v2o:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
@@ -1915,7 +1931,6 @@ class run_infile():
         os.system("mv MooringTest/*.log MooringTest/Outputs/")
 
     def run(self, run_args = {}):
-        # TODO: Check if MooringTest, Mooring, and MooringTest/Outputs exist and if they dont make them
 
         simulate = run_args.get('simulate', True)
         plot = run_args.get('plot', True)
@@ -1943,9 +1958,13 @@ class run_infile():
             out_dirname = "saved_runs/"+rootname+"_outputs/"
         else:
             out_dirname = path+"Outputs/"
-
+            if not os.path.exists(out_dirname):
+                os.mkdir(out_dirname)
+        
         inputs = load_infile(in_dirname = path, out_dirname = out_dirname, rootname = rootname, extension = extension, tMax = tMax)
 
+
+        print(inputs.numfair)
         self.vector_size = int(inputs.numfair*self.dof)
 
         # parameters
@@ -2002,7 +2021,7 @@ if __name__ == "__main__":
 
     # Flags for running
    
-    versions = {'run_v1' : False, 'run_v2n' : False, 'run_v2o' : True}
+    versions = {'run_v1' : False, 'run_dev2' : True, 'run_v2n' : True, 'run_v2o' : False}
     
     dynamics_args = {'static' : True, 
                      'x_sin' : False, 
@@ -2015,29 +2034,29 @@ if __name__ == "__main__":
                 'simulate' : True,
                 'plot' : True,
                 'del_logs' : False,
-                'rootname' : 'case1' ,
+                'rootname' : 'rod_dynamic' ,
                 'extension' : '.dat', 
                 'path' : 'MooringTest/', 
-                'tMax' : 10.0,  # simulation duration (s)
+                'tMax' : 25.0,  # simulation duration (s)
                 'dof' : 3} # Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods. Ex for three points, size should be 9. 
 
     plot_args = {}
     if run_args['plot']:
         plot_args = {'display': True, 
-                     'save': False,    
+                     'save': True,    
                      'line_rmse': False, 
                      'ten_rmse': False, 
-                     'plot_ten': False,
+                     'plot_ten': True,
                      'lines_and_tens': True, 
                      'animate_all': False,
                      'animate_start_end': False,
                      'plot_individual_start_end': False,
                      'plot_all_start_end': True,
-                     'plot3d': False,
-                     'plot2d': True,
+                     'plot3d': True,
+                     'plot2d': False,
                      'from_saved_runs': False,
                     #  'outputs_dir' : 'dynamic_runs/',
-                     'plot_tRange': (0,8)} # TODO: make the upper bound here be the timestep that plot start end plots as the 'end'
+                     'plot_tRange': (0,24)} 
 
     instance = run_infile(plot_args, dynamics_args, versions)
     instance.run(run_args = run_args)

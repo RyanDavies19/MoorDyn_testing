@@ -1,4 +1,7 @@
 rm Mooring*/*.out
 rm Mooring*/*.log
 rm MooringTest/Outputs/*
+rm MooringTest/*dev2*
+rm MooringTest/*v2new*
+rm MooringTest/*v2old*
 echo "Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/"

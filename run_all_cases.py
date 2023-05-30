@@ -14,7 +14,7 @@ if __name__ == "__main__":
                      'axis' : 0} # Axis of oscillation x: 0, y: 1, z: 2
 
     run_args = {'debug' : False, 
-                'simulate' : False,
+                'simulate' : True,
                 'plot' : True,
                 'rootname' : '' ,
                 'extension' : '', 
@@ -33,12 +33,12 @@ if __name__ == "__main__":
                      'animate_all': False,
                      'animate_start_end': False,
                      'plot_individual_start_end': False,
-                     'plot_all_start_end': False,
+                     'plot_all_start_end': True,
                      'plot3d': False,
-                     'plot2d': False,
-                     'from_saved_runs': True,
+                     'plot2d': True,
+                     'from_saved_runs': False,
                      'outputs_dir' : 'saved_runs/',
-                     'plot_tRange': (30,100)}
+                     'plot_tRange': (200,250)}
 
     # Read in a list of files in MooringTest
     os.system('OS_scripts/clean_outputs')
@@ -47,13 +47,15 @@ if __name__ == "__main__":
     file_list.remove('Outputs')
 
     for in_file in file_list:
-        if ("dev2" in in_file) or ("v2new" in in_file) or ("v2old" in in_file):
+        if ("dev2" in in_file) or ("v2new" in in_file) or ("v2old" in in_file) or ("_mod" in in_file):
             file_list.remove(in_file)
 
     # Notes about inputs files:
     #   case4.dat and lines.txt are 3d systems
     #   v1 calculates incorrect tensions for case4.dat () 
     
+    print("Running for files: ", file_list)
+
     for in_file in file_list:
         fname = in_file.split('.')
         run_args['rootname'] = fname[0]
