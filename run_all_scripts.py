@@ -12,7 +12,6 @@ import moorpy as mp
 from moorpy.helpers import set_axes_equal, read_mooring_file
 import moordyn
 
-
 class load_infile():
     # Built from system class and contained functions in MoorPy dev branch
 
@@ -102,7 +101,7 @@ class load_infile():
         self.groundBody = mp.Body(self, 0, 1, np.zeros(6))   # <<< implementation not complete <<<< be careful here if/when MoorPy is split up
 
         # number of fairleads, for determining vector size in running MoorDyn
-        self.numfair = 0 
+        self.num_coupled = 0 
         
         # figure out if it's a YAML file or MoorDyn-style file based on the extension, then open and process
         print('attempting to read '+self.in_file)
@@ -226,6 +225,7 @@ class load_infile():
                     #num = np.int_("".join(c for c in entry0 if not c.isalpha()))  # remove alpha characters to identify Body #
                     
                     if ("fair" in entry0) or ("coupled" in entry0) or ("ves" in entry0):       # coupled case
+                        self.num_coupled += 1
                         bodyType = -1                        
                     elif ("con" in entry0) or ("free" in entry0):                              # free case
                         bodyType = 0
@@ -352,7 +352,7 @@ class load_infile():
                     elif ("fair" in entry1) or ("ves" in entry1) or ("couple" in entry1):
                         # for coupled point type, just set it up that same way in MoorPy (attachment to a body not needed, right?)
                         pointType = -1     
-                        self.numfair += 1                       
+                        self.num_coupled += 1                       
                         '''
                         # attach to a generic platform body (and make it if it doesn't exist)
                         if len(self.bodyList) > 1:
@@ -1081,79 +1081,6 @@ class load_infile():
             
         return 
 
-    def animateLines(self, ax = None, fig = None, interval=200, repeat=True, delay=0, runtime=-1, start_end_ani = False, **kwargs):
-        '''
-        Parameters
-        ----------
-        dirname : string
-            The name of the directory folder you are in.
-        rootname : string
-            The name of the front portion of the main file name, like spar_WT1, or DTU_10MW_NAUTILUS_GoM.
-        interval : int, optional
-            The time between animation frames in milliseconds. The default is 200.
-        repeat : bool, optional
-            Whether or not to repeat the animation. The default is True.
-        delay : int, optional
-            The time between consecutive animation runs in milliseconds. The default is 0.
-        runtime: int, optional
-            The desired time that the animation should run to in seconds. The default is -1, which means to run the full simulation
-
-        Returns
-        -------
-        line_ani : animation
-            an animation of the mooring lines based off of MoorDyn data.
-            Needs to be stored, returned, and referenced in a variable
-        '''
-        
-        bathymetry       = kwargs.get('bathymetry'     , False     )     # toggles whether to show the axes or not
-        opacity          = kwargs.get('opacity'        , 1.0       )     # the transparency of the bathymetry plot_surface
-        hidebox          = kwargs.get('hidebox'        , False     )     # toggles whether to show the axes or not
-        rang             = kwargs.get('rang'           , 'hold'    )     # colorbar range: if range not used, set it as a placeholder, it will get adjusted later
-        speed            = kwargs.get('speed'          , 10        )     # the resolution of the animation; how fluid/speedy the animation is
-        colortension     = kwargs.get("colortension"   , False     )     # toggle to draw the mooring lines in colors based on node tensions
-        cmap_tension     = kwargs.get('cmap_tension'   , 'rainbow' )     # the type of color spectrum desired for colortensions
-        draw_body        = kwargs.get('draw_body'      , True      )
-        # bound kwargs
-        xbounds          = kwargs.get('xbounds'        , None      )     # the bounds of the x-axis. The midpoint of these bounds determines the origin point of orientation of the plot
-        ybounds          = kwargs.get('ybounds'        , None      )     # the bounds of the y-axis. The midpoint of these bounds determines the origin point of orientation of the plot
-        zbounds          = kwargs.get('zbounds'        , None      )     # the bounds of the z-axis. The midpoint of these bounds determines the origin point of orientation of the plot
-
-                # can use any other kwargs that go into self.plot()
-        
-        if self.qs==1:
-            raise ValueError("This System is set to be quasi-static. Import MoorDyn data and make qs=0 to use this method")   
-
-        ax.set_xlabel('x');    ax.set_ylabel('y');      ax.set_zlabel('z');
-        label = ax.text(-100, 100, 0, 'time=0', ha='center', va='center', fontsize=10, color="k")
-   
-        # find idyn, the index of the first line in the lineList that contains a series of Tdata
-        idyn = len(self.lineList)-1    # note, the idyn approach is not robust to different Lines having output, or Rods. Should reconsider.
-        for line in self.lineList:
-            if len(line.Tdata) > 0:
-                idyn = line.number-1
-                break
-        
-        if runtime==-1:     # if the full simulation is desired to be animated
-            nFrames = len(self.lineList[idyn].Tdata)
-        else:               # if only part of the simulation is to be animated, up to a certain runtime in seconds
-            itime = int(np.where(self.lineList[idyn].Tdata==runtime)[0])
-            nFrames = len(self.lineList[idyn].Tdata[0:itime]) # TODO: add in the work around for erroneous data, right now nFrames is different depending on data
-        
-        # dt = self.lineList[idyn].Tdata[1]-self.lineList[idyn].Tdata[0] # time step length (s) <<< should get this from main MoorDyn output file <<<
-        dt = float(self.MDoptions.get('dtOut',self.dtC))
-
-        # Animation: update the figure with the updated coordinates from update_Coords function
-        # NOTE: the animation needs to be stored in a variable, return out of the method, and referenced when calling self.animatelines()
-        if start_end_ani:
-            line_ani = animation.FuncAnimation(fig, self.updateCoords, np.array([1, nFrames-1]), fargs=(label, dt),
-                                                interval=1500, repeat=repeat, repeat_delay=delay, blit=False)
-                                                # works well when np.arange(...nFrames...) is used. Others iterable ways to do this
-        else:
-            line_ani = animation.FuncAnimation(fig, self.updateCoords, np.arange(1, nFrames-1, speed), fargs=(label, dt),
-                                        interval = interval, repeat=repeat, repeat_delay=delay, blit=False)
-                                        # works well when np.arange(...nFrames...) is used. Others iterable ways to do this
-        return line_ani
- 
     def plot_start_end(self, plot2d = False, plot_all = False, color = None, ax= None, draw_body = False):
         
         tMax = self.lineList[0].Tdata[-1]
@@ -1263,30 +1190,6 @@ class load_infile():
         min = np.where(time.astype(int)[:]==self.plot_tRange[0])[0][0] # TODO: this is a slow process
         max = np.where(time.astype(int)[:]==self.plot_tRange[1])[0][0]
         ax.plot(time[min:max], rmse_final[min:max], color = color)
-
-    def tensions_rmse(self, ax):
-        data3 = np.zeros((self.tMax,len(self.con_ten_channels)))
-        data4 = np.zeros((self.tMax,len(self.test_ten_channels)))
-
-        # Work-around for dev2 dtOut flag error
-        if len(self.con_ten_data[:,0]) != (self.tMax/self.dtOut) - 1:
-            data3 = self.dtOut_fix(self.con_ten_data, len(self.con_ten_channels))
-        else: 
-            data3 = self.con_ten_data
-        if len(self.test_ten_data[:,0]) != (self.tMax/self.dtOut) - 1:
-            data4 = self.dtOut_fix(self.test_ten_data, len(self.test_ten_channels))
-        else: 
-            data4 = self.test_ten_data
-
-        rmse_lines = np.zeros((len(data4[:,0]),len(self.outputList)))
-        for i in range(0,len(self.outputList)):
-            rmse_lines[:,i] = np.abs(np.subtract(data3[:,i+1],data4[:,i+1])) # i+1 index accounts for first column being time data
-
-        rmse = np.zeros(len(data4[:,0]))
-        for j in range(0,len(rmse)):
-            rmse[j] = np.sqrt(np.sum(np.square(rmse_lines[j,:]))/len(self.outputList)) 
-
-        ax.plot(data4[:,0], rmse/1000)
         
     def plot_ten(self, ax, color):
 
@@ -1295,7 +1198,6 @@ class load_infile():
         else:
             data = self.test_ten_data
 
-        data3 = np.zeros((self.tMax,len(self.con_ten_channels)))
         if len(data[:,0]) != (self.tMax/self.dtOut) - 1:
             data3 = self.dtOut_fix(data, len(self.con_ten_channels))
         else: 
@@ -1307,6 +1209,8 @@ class load_infile():
             pattern = "--"
         elif self.version == 'v1':
             pattern = "-."
+        elif self.version == 'F':
+            pattern = ":"
         
         min = np.where(data3.astype(int)[:,0]==self.plot_tRange[0])[0][0] # TODO: this is a slow process
         max = np.where(data3.astype(int)[:,0]==self.plot_tRange[1])[0][0]
@@ -1318,7 +1222,7 @@ class load_infile():
         if num_channels == 1:
             data1 = np.zeros(len(time))
             if tdata is None:
-                print('ERROR')
+                print('ERROR: no time data for dtOut fix')
                 return
             else:
                 for i in range(1,num_channels):
@@ -1355,7 +1259,7 @@ class load_infile():
         plot3d = plot_args.get('plot3d', False)
         plot2d = plot_args.get('plot2d', True)
         from_saved_runs = plot_args.get('from_saved_runs', True)
-        outputs_dir = plot_args.get('outputs_dir' , 'saved_runs/')
+        outputs_dir = plot_args.get('outputs_dir' , 'outputs/')
         plot_tRange = plot_args.get('plot_tRange', None)
         draw_body = plot_args.get('draw_body', False)
 
@@ -1367,13 +1271,15 @@ class load_infile():
             plot_tRange = (0,self.tMax)
         self.plot_tRange = plot_tRange
         
-        if from_saved_runs:
+        if from_saved_runs and outputs_dir != 'MooringTest/':
             if outputs_dir == None:
-                outputs_dir = 'saved_runs/'
+                outputs_dir = 'outputs/'
             self.out_dirname = outputs_dir+self.rootname+'_outputs/'
-            print('Plotting from data in {}{}_outputs/'.format(outputs_dir, self.rootname))
+            print('Plotting from data in {}'.format(self.out_dirname))
         else:
-            self.out_dirname = 'MooringTest/Outputs/'
+            self.out_dirname = 'MooringTest/'
+            if outputs_dir == None:
+                outputs_dir = 'outputs/'
         
         # Creating figures
         if lines_and_tens:
@@ -1400,8 +1306,8 @@ class load_infile():
                 fig9, ax9 = plt.subplots(1,2, subplot_kw = {'projection':'3d'})
 
         # Preparing  for loop
-        version_list = ['dev2', 'v2new', 'v2old', 'v1']
-        colors = ['green', 'orange', 'blue', 'red']
+        version_list = ['dev2', 'v2new', 'v2old', 'v1', 'F']
+        colors = ['green', 'orange', 'blue', 'red', 'brown']
         if version_list[0] != control:
             # control version required to be first 
             version_list.remove(control)
@@ -1418,9 +1324,7 @@ class load_infile():
         if not run_v2o:
             version_list.remove('v2old')
             colors.remove('orange')
-        if len(version_list) == 1:
-            control = version_list[0]
-        self.control = control
+        self.control = version_list[0]
 
         if line_rmse or plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end or lines_and_tens:
             # loading control in cases where line data is needed. Loading outside of line objects becasue need to reference two data sets simutaneously 
@@ -1431,9 +1335,9 @@ class load_infile():
             self.control_zp = [None]*len(self.lineList)
             i = 0
             for rod in self.rodList:
-                rod.loadData(self.out_dirname, self.rootname+control, sep = '_')
+                rod.loadData(self.out_dirname, self.rootname+self.control, sep = '_')
             for line in self.lineList:
-                line.loadData(self.out_dirname, self.rootname+control, sep = '_') # remember number starts on 1 rather than 0
+                line.loadData(self.out_dirname, self.rootname+self.control, sep = '_') # remember number starts on 1 rather than 0
                 self.control_Tdata[i] = line.Tdata
                 self.control_nNodes[i] = line.nNodes
                 self.control_xp[i] = line.xp
@@ -1443,7 +1347,7 @@ class load_infile():
         
         if ten_rmse or plot_ten or lines_and_tens:
             # loading control in cases where tension data is needed
-            self.con_ten_data, self.con_ten_ch, self.con_ten_channels, self.con_ten_units = read_mooring_file(self.out_dirname, self.rootname+control+'.out')
+            self.con_ten_data, self.con_ten_ch, self.con_ten_channels, self.con_ten_units = read_mooring_file(self.out_dirname, self.rootname+self.control+'.out')
 
         i = 0
         j = 0
@@ -1498,7 +1402,7 @@ class load_infile():
         if display or save:
             # Formatting 
             if lines_and_tens:
-                fig0.suptitle('{}: Position RMS error ({} comparison)'.format(self.rootname, control))
+                fig0.suptitle('{}: Position RMS error ({} comparison)'.format(self.rootname, self.control))
                 fig0.supxlabel('Time (s)')
                 ax0[1].set_ylabel('Position RMS error (m)')
                 ax0[3].set_title(self.rootname+': Line tensions (kN)')
@@ -1511,7 +1415,7 @@ class load_infile():
                 fig0.tight_layout()
 
             if line_rmse:
-                fig1.suptitle('{}: Position RMS error ({} comparison)'.format(self.rootname, control))
+                fig1.suptitle('{}: Position RMS error ({} comparison)'.format(self.rootname, self.control))
                 fig1.supxlabel('Time (s)')
                 fig1.supylabel('Position RMS error (m)')
                 for ax in ax1:
@@ -1519,7 +1423,7 @@ class load_infile():
                 fig1.tight_layout()
 
             if ten_rmse:  
-                fig2.suptitle('{} RMS tension error compared to {}'.format(self.rootname, control))
+                fig2.suptitle('{} RMS tension error compared to {}'.format(self.rootname, self.control))
                 fig2.supylabel('Tension RMSE (kN)')
                 fig2.supxlabel('Time (s)')
                 for ax in ax2:
@@ -1592,7 +1496,7 @@ class load_infile():
                         fig8.savefig(self.rootname+"_all2d.png", dpi = 300)
                     if plot3d:
                         fig9.savefig(self.rootname+"_all3d.png", dpi = 300)
-
+                
                 if not os.path.isdir(outputs_dir):
                     os.system('mkdir {}'.format(outputs_dir))
                 if not os.path.isdir('{}/figures/'.format(outputs_dir)):
@@ -1611,27 +1515,52 @@ class run_infile():
         self.dynamics_args = dynamics_args
         self.versions = versions
         
+    def MDf_build(self):
 
-    def save_outputs(self, remove_version_inputs = True, del_logs = True):
-        if not os.path.isdir("saved_runs/"):
-            os.system("mkdir saved_runs/")
-        if not os.path.isdir("saved_runs/{}_outputs/".format(self.rootname)):
-            os.system("mkdir saved_runs/{}_outputs/".format(self.rootname))
-        os.system("mv MooringTest/*.out saved_runs/{}_outputs/".format(self.rootname))
-        os.system("mv MooringTest/*.log saved_runs/{}_outputs/".format(self.rootname))
-        os.system("mv MooringTest/Outputs/* saved_runs/{}_outputs/".format(self.rootname))
-        os.system("OS_scripts/clean_outputs")
-        if del_logs:
-            os.system("rm saved_runs/{}_outputs/*.log".format(self.rootname))
+        os.system("cp MD_fortran_input/MoorDyn.dvr MD_fortran_input/MoorDyn_archived.dvr")
+        driverfile = "MD_fortran_input/MoorDyn.dvr"
 
-        print("-------------------------")
-        print("Output files from versions saved to saved_runs/{}_outputs/".format(self.rootname))
-        print("Files of the form Line_Line*.out are v1 output files")
+        static = self.dynamics_args.get('static', True)
 
-        if remove_version_inputs:
-            os.system("rm {}".format(self.path+self.rootname+"v2old"+self.extension))
-            os.system("rm {}".format(self.path+self.rootname+"v2new"+self.extension))
-            os.system("rm {}".format(self.path+self.rootname+"dev2"+self.extension))
+        if static:
+            InputsMode = 0
+        else:
+            InputsMode = 1
+
+        # State vector of inital positions of coupled surface object
+        state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        if len(self.xi) > 0:  
+            if self.dof == 3:
+                for i in range(3):
+                    state[i] = self.xi[i]
+                state[3] = 0.0
+                state[4] = 0.0
+                state[5] = 0.0
+            if self.dof == 6:
+                for i in range(6):
+                    state[i] = self.xi[i]
+        
+        with open(driverfile, 'w') as myfile:     # open an input stream to the line data input file
+            myfile.writelines(['MoorDyn driver input file \n'])
+            myfile.writelines(['another comment line\n'])
+            myfile.writelines(['FALSE               Echo             - Echo the input file data (flag) \n'])
+            myfile.writelines(['---------------------- ENVIRONMENTAL CONDITIONS ------------------------------- \n'])
+            myfile.writelines(['9.80665            Gravity          - Gravity (m/s^2) \n'])
+            myfile.writelines(['{}             rhoW             - Water density (kg/m^3) \n'.format(self.WtrDnsty)])
+            myfile.writelines(['{}              WtrDpth          - Water depth (m) \n'.format(self.WtrDpth)])
+            myfile.writelines(['---------------------- MOORDYN ------------------------------------------------ \n'])
+            myfile.writelines(['"{}"      MDInputFile      - Primary HydroDyn input file name (quoted string) \n'.format(os.path.abspath('MD_fortran_input/'+self.rootname+'F'+self.extension))])
+            myfile.writelines(['"MooringTest/F"            OutRootName      - The name which prefixes all HydroDyn generated files (quoted string) \n'])
+            myfile.writelines(['{}                  TMax             - Number of time steps in the simulations (-) \n'.format(self.tMax)])
+            myfile.writelines(['{}                 dtC              - TimeInterval for the simulation (sec) \n'.format(self.dtC)])
+            myfile.writelines(['{}                   InputsMode       - MoorDyn coupled object inputs (0: all inputs are zero for every timestep, 1: time-series inputs) (switch) \n'.format(InputsMode)])
+            myfile.writelines(['"/Users/rdavies/work/MoorDyn_ryan/testing/MD_fortran_input/PtfmMotions.dat"   InputsFile       - Filename for the MoorDyn inputs file for when InputsMod = 1 (quoted string) \n'])
+            myfile.writelines(['0                   NumTurbines      - Number of wind turbines (-) [>=1 to use FAST.Farm mode. 0 to use OpenFAST mode.] \n'])
+            myfile.writelines(['---------------------- Initial Positions -------------------------------------- \n'])
+            myfile.writelines(['ref_X    ref_Y    surge_init   sway_init  heave_init  roll_init  pitch_init   yaw_init \n'])
+            myfile.writelines(['(m)      (m)        (m)          (m)        (m)       (rad)       (rad)        (rad)         [followed by MAX(1,NumTurbines) rows of data] \n'])
+            myfile.writelines(['0         0         {}          {}        {}        {}         {}          {}   \n'.format(state[0], state[1], state[2], state[3], state[4], state[5])])
+            myfile.writelines(['END of driver input file \n'])
 
     def get_positions(self):
         scaler = [1., 1., 1., np.pi/180., np.pi/180., np.pi/180.]  # for scaling platform position inputs
@@ -1775,7 +1704,7 @@ class run_infile():
         MDStepParams = (1, "x"), (1, "xd"), (2, "f"), (1, "t"), (1, "dtC") 
 
         if dylib == None:
-            dylib = 'compileDYLIB/MoorDyn.dylib'
+            dylib = 'MD_libraries/v1_DYLIB/MoorDyn.dylib'
         MDdylib = ctypes.CDLL(dylib) #load moordyn dylib
 
         MDInit = MDInitProto(("LinesInit", MDdylib), MDInitParams)
@@ -1822,9 +1751,9 @@ class run_infile():
 
         if dylib == None:
             if version == "dev2":
-                dylib_path = "dev2_DYLIB/MoorDyn2.dylib"
+                dylib_path = "MD_libraries/dev2_DYLIB/MoorDyn2.dylib"
             elif version == "v2old":
-                dylib_path = "v2_DYLIB/libmoordyn2.dylib"
+                dylib_path = "MD_libraries/v2_DYLIB/libmoordyn2.dylib"
             else:
                 print("Please specify dev2 or v2 as versions for old_API run")
                 return
@@ -1889,12 +1818,77 @@ class run_infile():
         print("++++++++++++++++++++++++++++++++++++++++++++++++++")
         del system
 
-    def simulate_all (self):
+    def run_fortran(self, driverf_path = None):
+
+        if driverf_path == None:
+            driverf_path = "/Users/rdavies/work/MoorDyn_ryan/openfast/build/modules/moordyn/"
+
+        # Remove previous outputs and logs 
+        print("Removing *.log and *.out from ", driverf_path)
+        os.system("rm {}*.out".format(driverf_path))
+        os.system("rm {}*.log".format(driverf_path))
+
+        # Creating platform position data if not static
+        static = self.dynamics_args.get('static', True)
+        if not static:
+            scaler = [1., 1., 1., np.pi/180., np.pi/180., np.pi/180.]  # for scaling platform position inputs
+            outFileName = "MD_fortran_input/PtfmMotions.dat"
+            with open(outFileName, 'w') as myfile:     # open an input stream to the line data input file
+                print("Writing pltfm positions to ", outFileName) 
+                i=0  # file line number
+                if self.dof == 6:
+                    header = ["# Time    PtfmSurge    PtfmSway    PtfmHeave    PtfmRoll    PtfmPitch    PtfmYaw \n"]
+                else:
+                    header = ['# Time']
+                    for i in range(self.num_coupled):
+                        header.append('Fair{}Surge    Fair{}Sway    Fair{}Heave   '.format(i,i,i))
+                    header.append('\n')
+                myfile.writelines(header)
+                for i in range(int(len(self.time)*10*self.dtC)):
+                    j = int(i / self.dtC / 10)
+                    datarow = self.x[j]
+                    value = 0.0
+                    line = ""
+                    for k in range(0,self.vector_size+1):
+                        if k == 0:
+                            line += (str(self.time[j])) + "   "
+                        else:
+                            if k <= len(datarow):
+                                value = datarow[k-1] 
+                                if self.dof == 6:
+                                    value = value / scaler[k-1]
+                            line += (str(value)) + "   "
+                
+                    myfile.writelines([line, "\n"])
+                    i += 1
+
+        # running MD fortran
+
+        os.system("{}/moordyn_driver MD_fortran_input/MoorDyn.dvr".format(driverf_path))
+
+        # standardizing file names
+
+        files = os.listdir('MooringTest/')
+        for file in files:
+            components = file.split('.')
+            if ('MD' in components) and ('F'in components):
+                components.remove('MD')
+                components.remove('F')
+                if len(components) == 1:
+                    new_name = self.rootname+'F.'+ components[0]
+                else:
+                    new_name = self.rootname+'F_'+ ('.'.join(map(str, components)))
+                os.system('mv MooringTest/{} MooringTest/{}'.format(file, new_name)) 
+
+        os.system('rm fort.10')
+
+    def simulate (self):
 
         run_v1 = self.versions.get('run_v1', True)
         run_dev2 = self.versions.get('run_dev2', True)
         run_v2n = self.versions.get('run_v2n', True)
         run_v2o = self.versions.get('run_v2o', True)
+        run_f = self.versions.get('run_f', True)
 
         print("System initialized, now simulating versions of MoorDyn")
         if os.path.isfile("MooringTest/*.out") or os.path.isfile("Mooring/*.out"):
@@ -1904,15 +1898,14 @@ class run_infile():
         if os.path.isfile("MooringTest/*.log") or os.path.isfile("Mooring/*.log"):
             os.system('rm Mooring*/*.log')
             os.system('echo "Removed files with .log extension from Mooring*"')
-
-        if len(os.listdir("MooringTest/Outputs")) != 0 :
-            os.system('rm MooringTest/Outputs/*')
-            os.system('echo "Removed files with .out and .log extension from MooringTest/Outputs/"')
        
-        
+        if run_f:
+            os.system("cp {} {}".format(self.path+self.rootname+self.extension, "MD_fortran_input/"+self.rootname+"F"+self.extension))
+            self.run_fortran()
+
         if run_dev2:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"dev2"+self.extension))
-            self.run_old_API(version = "dev2", dylib= '/Users/rdavies/work/MoorDyn_branch/compile/DYLIB/MoorDyn2.dylib')
+            self.run_old_API(version = "dev2", dylib= '/Users/rdavies/work/MoorDyn_ryan/MD_extra_branch/compile/DYLIB/MoorDyn2.dylib')
        
         if run_v2o:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
@@ -1925,10 +1918,8 @@ class run_infile():
         if run_v1: 
             self.run_v1()
             os.system("OS_scripts/namechange_v1")
-
-        os.system("mv Mooring/Line_Line* MooringTest/Outputs/")
-        os.system("mv MooringTest/*.out MooringTest/Outputs/")
-        os.system("mv MooringTest/*.log MooringTest/Outputs/")
+            os.system("mv Mooring/*_*.out MooringTest/")
+            os.system("mv Mooring/*_*.log MooringTest/")
 
     def run(self, run_args = {}):
 
@@ -1936,50 +1927,55 @@ class run_infile():
         plot = run_args.get('plot', True)
         debug = run_args.get('debug', True)
         del_logs = run_args.get('del_logs', True)
-        rootname = run_args.get('rootname', 'lines')
-        extension = run_args.get('extension', '.txt')
-        path = run_args.get('path', 'MooringTest/')
-        tMax = run_args.get('tMax', 60)
-        dof = run_args.get('dof', 3)
+        self.rootname = run_args.get('rootname', 'lines')
+        self.extension = run_args.get('extension', '.txt')
+        self.path = run_args.get('path', 'MooringTest/')
+        self.tMax = run_args.get('tMax', 60)
+        self.dof = run_args.get('dof', 3)
         remove_version_inputs = run_args.get('remove_version_inputs', True)
         run_v1 = self.versions.get('run_v1', True)
-
+        run_f = self.versions.get('run_f', True)
 
         #------------------- Set up Mooring line conditions -----------------------------
 
         print("Loading input data...")
-        self.path = path
-        self.rootname = rootname
-        self.extension = extension
-        self.dof = int(dof)
         from_saved_runs = self.plot_args.get('from_saved_runs', True)
 
         if from_saved_runs:
-            out_dirname = "saved_runs/"+rootname+"_outputs/"
+            out_dirname = "outputs/"+self.rootname+"_outputs/"
         else:
-            out_dirname = path+"Outputs/"
-            if not os.path.exists(out_dirname):
-                os.mkdir(out_dirname)
+            out_dirname = self.path
         
-        inputs = load_infile(in_dirname = path, out_dirname = out_dirname, rootname = rootname, extension = extension, tMax = tMax)
-
-
-        print(inputs.numfair)
-        self.vector_size = int(inputs.numfair*self.dof)
+        inputs = load_infile(in_dirname = self.path, out_dirname = out_dirname, rootname = self.rootname, extension = self.extension, tMax = self.tMax)
 
         # parameters
         self.dtC = float(inputs.MDoptions["dtM"])
-        self.tMax = tMax
+        self.WtrDnsty = float(inputs.MDoptions.get('WtrDnsty', 1025.0))
+        self.WtrDpth = float(inputs.MDoptions['WtrDpth'])
+        self.num_coupled = inputs.num_coupled
 
-        # Inital fairlead locations
-        i=0
+        # Inital fairlead locations # TODO is this necessary for when plotting or can we put it in the simulate if statement
+        self.vector_size = int(inputs.num_coupled*self.dof)
         self.xi = np.zeros(self.vector_size)
-        for point in inputs.pointList:
-            if point.type == -1:  
-                self.xi[i]=(point.r[0])
-                self.xi[i+1]=(point.r[1])
-                self.xi[i+2]=(point.r[2])
-                i += dof
+        if self.dof == 3:
+            i=0
+            for point in inputs.pointList:
+                if point.type == -1:  
+                    self.xi[i]=(point.r[0])
+                    self.xi[i+1]=(point.r[1])
+                    self.xi[i+2]=(point.r[2])
+                    i += self.dof
+        if self.dof == 6 :
+            self.xi = np.zeros(self.dof)
+            for body in inputs.bodyList:
+                if body.type == -1:  
+                    self.xi[i]=(body.r6[0])
+                    self.xi[i+1]=(body.r6[1])
+                    self.xi[i+2]=(body.r6[2])
+                    self.xi[i+3]=(body.r6[3])
+                    self.xi[i+4]=(body.r6[4])
+                    self.xi[i+5]=(body.r6[5])
+                    i += self.dof
 
         self.load_dynamics()
         
@@ -1988,10 +1984,14 @@ class run_infile():
         if not debug: 
             if simulate: 
                 if run_v1:
-                    print("Converting v2 input into v1...")
+                    print("Converting v2 input file into v1 format...")
                     inputs.v1_build(outfile = "Mooring/lines.txt")
 
-                self.simulate_all()
+                if run_f:
+                    print("Building files for MoorDynF...")
+                    self.MDf_build()
+
+                self.simulate()
                 
                 if plot:                        
                     self.plot_args['from_saved_runs'] = False
@@ -2007,24 +2007,42 @@ class run_infile():
                 exit()
         
         else: # debugging space
-            os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"v2old"+self.extension))
-            self.run_old_API(version = "v2old", dylib= '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/libmoordyn2.dylib')
-            os.system("rm *v2old*")
+            self.run_fortran()
 
         if plot:
             plt.close('all')
 
         print('------------end--------------')
+    
+    def save_outputs(self, remove_version_inputs = True, del_logs = True):
+        if not os.path.isdir("outputs/"):
+            os.system("mkdir outputs/")
+        if not os.path.isdir("outputs/{}_outputs/".format(self.rootname)):
+            os.system("mkdir outputs/{}_outputs/".format(self.rootname))
+        os.system("mv MooringTest/*.out outputs/{}_outputs/".format(self.rootname))
+        os.system("mv MooringTest/*.log outputs/{}_outputs/".format(self.rootname))
+        os.system("OS_scripts/clean_outputs")
+        if del_logs:
+            os.system("rm outputs/{}_outputs/*.log".format(self.rootname))
+
+        print("-------------------------")
+        print("Output files from versions saved to outputs/{}_outputs/".format(self.rootname))
+        print("Files of the form Line_Line*.out are v1 output files")
+
+        if remove_version_inputs:
+            os.system("rm {}".format(self.path+self.rootname+"v2old"+self.extension))
+            os.system("rm {}".format(self.path+self.rootname+"v2new"+self.extension))
+            os.system("rm {}".format(self.path+self.rootname+"dev2"+self.extension))
+            os.system("rm MD_fortran_input/{}".format(self.rootname+'F'+self.extension))
 
 if __name__ == "__main__":
     #------------------- Run All Scripts -----------------------------
 
     # Flags for running
-   
-    versions = {'run_v1' : False, 'run_dev2' : True, 'run_v2n' : True, 'run_v2o' : False}
+    versions = {'run_v1' : False, 'run_dev2' : True, 'run_v2n' : True, 'run_v2o' : True, 'run_f' : True}
     
-    dynamics_args = {'static' : True, 
-                     'x_sin' : False, 
+    dynamics_args = {'static' : False, 
+                     'x_sin' : True, 
                      'from_file' : False, 
                      'period' : 10, 
                      'A' : 10, 
@@ -2034,10 +2052,10 @@ if __name__ == "__main__":
                 'simulate' : True,
                 'plot' : True,
                 'del_logs' : False,
-                'rootname' : 'rod_dynamic' ,
-                'extension' : '.dat', 
+                'rootname' : 'WD0200_Chain' ,
+                'extension' : '.txt', 
                 'path' : 'MooringTest/', 
-                'tMax' : 25.0,  # simulation duration (s)
+                'tMax' : 300.0,  # simulation duration (s)
                 'dof' : 3} # Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods. Ex for three points, size should be 9. 
 
     plot_args = {}
@@ -2054,9 +2072,9 @@ if __name__ == "__main__":
                      'plot_all_start_end': True,
                      'plot3d': True,
                      'plot2d': False,
-                     'from_saved_runs': False,
-                    #  'outputs_dir' : 'dynamic_runs/',
-                     'plot_tRange': (0,24)} 
+                     'from_saved_runs': True,
+                     'outputs_dir' : 'MooringTest/',
+                     'plot_tRange': (200,250)} 
 
     instance = run_infile(plot_args, dynamics_args, versions)
     instance.run(run_args = run_args)

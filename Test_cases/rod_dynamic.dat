@@ -14,7 +14,7 @@ ID   Attachment  X0     Y0    Z0     r0      p0     y0     Mass  CG*   I*      V
 ---------------------- RODS ----------------------------------------
 ID   RodType  Attachment  Xa    Ya    Za    Xb    Yb     Zb    NumSegs  RodOutputs
 (#)  (name)    (#/key)    (m)   (m)   (m)   (m)   (m)    (m)   (-)       (-)
-1      Can   Body1Pinned   0     0   -2.0   0.0   0    -13.0    3         p
+1      Can   Body1Pinned   0     0   -2.0   0   0    -13.0    3         p
 ---------------------- CONNECTION PROPERTIES --------------------------------
 ID    Type      X       Y       Z       Mass   Volume  CdA    Ca
 (#)   (-)       (m)     (m)     (m)     (kg)   (mˆ3)   (m^2)  (-)
@@ -27,9 +27,9 @@ ID    Type      X       Y       Z       Mass   Volume  CdA    Ca
 ---------------------- LINES ----------------------------------------
 ID   LineType   AttachA  AttachB  UnstrLen  NumSegs  LineOutputs
 (#)   (name)     (#)      (#)       (m)       (-)     (-)
-1     main       1        4         902.2     20      p
-2     main       2        5         902.2     20      p
-3     main       3        6         902.2     20      p              
+1     main       1        4         1002.2     20      p
+2     main       2        5         1002.2     20      p
+3     main       3        6         1002.2     20      p              
 ---------------------- OPTIONS -----------------------------------------
 2        writeLog 
 0.001         dtM           time step to use in mooring integration (s)

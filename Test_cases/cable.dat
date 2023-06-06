@@ -11,7 +11,7 @@ Node      Type      X      Y         Z        M       V      CdA   Ca
 1       Fixed    -800      0      -600        0       0       0    0
 2       Free     -300      0      -300        0       0       0    0
 3       Free     -100      0      -300        0       0       0    0
-4       Vessel     0      0         0        0       0       0    0   NOTE: this was coupled before
+4       Vessel     0      0         0        0       0       0    0   
 ---------------------- LINES -----------------------------------------------------
 Line     LineType   NodeA     NodeB   UnstrLen  NumSegs   Flags/Outputs
 (-)       (-)       (-)       (-)       (m)       (-)         (-)

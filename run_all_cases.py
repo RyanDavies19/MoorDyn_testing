@@ -4,10 +4,10 @@ import os
 if __name__ == "__main__":
 
     # Flags for running
-    versions = {'run_v1' : True, 'run_v2n' : True, 'run_v2o' : True}
+    versions = {'run_v1' : True, 'run_v2n' : False, 'run_v2o' : True, 'run_f' : True}
     
-    dynamics_args = {'static' : False, 
-                     'x_sin' : True, 
+    dynamics_args = {'static' : True, 
+                     'x_sin' : False, 
                      'from_file' : False, 
                      'period' : 10, 
                      'A' : 10, # Amplitude of driving funtion
@@ -37,14 +37,13 @@ if __name__ == "__main__":
                      'plot3d': False,
                      'plot2d': True,
                      'from_saved_runs': False,
-                     'outputs_dir' : 'saved_runs/',
+                     'outputs_dir' : None,
                      'plot_tRange': (200,250)}
 
     # Read in a list of files in MooringTest
     os.system('OS_scripts/clean_outputs')
     file_list = os.listdir(run_args['path'])
     file_list.remove('.DS_Store')
-    file_list.remove('Outputs')
 
     for in_file in file_list:
         if ("dev2" in in_file) or ("v2new" in in_file) or ("v2old" in in_file) or ("_mod" in in_file):
@@ -69,5 +68,5 @@ if __name__ == "__main__":
 
         instance = run_all_scripts.run_infile(plot_args, dynamics_args, versions)
         instance.run(run_args = run_args)
-        print("Sucessfully run for ", fname[0]+fname[1])
+        print("Sucessfully run for ", fname[0]+'.'+fname[1])
         print("----------------------------------------------")
