@@ -2137,29 +2137,32 @@ class run_infile():
 if __name__ == "__main__":
     #------------------- Run All Scripts -----------------------------
 
-    # Flags for running
-    versions = {'run_v1' : False, 'run_dev2' : False, 'run_cpy' : False, 'run_c' : True, 'run_f' : True}
+    # Flags for running (required)
+    versions = {'run_v1' : False, 'run_dev2' : False, 'run_cpy' : True, 'run_c' : False, 'run_f' : False}
     
+    # Required
     dynamics_args = {'static' : True, 
                      'sin' : False, 
                      'from_file' : False, 
                      'period' : 10, 
                      'A' : 6, 
-                     'axis' : 5
+                     'axis' : 5 # 0 -> x, 1 -> y, 2 -> z, 3 -> rx , 4 -> ry, 5 -> rz
                      }
 
+    # Required
     run_args = {'debug' : False, 
                 'simulate' : True,
                 'plot' : True,
                 'del_logs' : True,
-                'rootname' : 'pinned' ,
-                'extension' : '.dat', 
+                'rootname' : 'lines' ,
+                'extension' : '.txt', 
                 'path' : 'MooringTest/', 
                 'tMax' : 3,  # simulation duration (s)
                 'dof' : 3} # Size of X and XD vectors: 3 DOF for lines, points, connections, 6 DOF for bodies and rods (for no coupled objects, set to 3). Ex for three points, size should be 9. 
 
+    # Required if plot is true in run_args
     plot_args = {}
-    if run_args['plot']:
+    if run_args['plot']: # for plotting moordyn outputs
         plot_args = {'display': True, 
                      'save': False,    
                      'line_rmse': False, 
