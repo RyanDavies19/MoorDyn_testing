@@ -12,3 +12,7 @@ developing/
 outdated_scripts/
 outputs/*
 saved_outputs/*
+test_cases/*
+rod_inertia.py
+moorpy_driver.py
+

@@ -5,4 +5,5 @@ rm MooringTest/*dev2*
 rm MooringTest/*v2new*
 rm MooringTest/*v2old*
 rm MD_fortran_input/*F*
+rm -r MooringTest/figures/
 echo "Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/"
