@@ -2144,6 +2144,7 @@ if __name__ == "__main__":
     dynamics_args = {'static' : True, 
                      'sin' : False, 
                      'from_file' : False, 
+                     # if sin is true
                      'period' : 10, 
                      'A' : 6, 
                      'axis' : 5 # 0 -> x, 1 -> y, 2 -> z, 3 -> rx , 4 -> ry, 5 -> rz
