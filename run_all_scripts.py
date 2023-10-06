@@ -3084,8 +3084,11 @@ class run_infile():
             os.system("mkdir outputs/")
         if not os.path.isdir("outputs/{}_outputs/".format(self.rootname)):
             os.system("mkdir outputs/{}_outputs/".format(self.rootname))
+        if self.plot_args["save"] and not os.path.isdir("outputs/figures/"):
+            os.system("mkdir outputs/figures/")
         os.system("mv MooringTest/*.out outputs/{}_outputs/".format(self.rootname))
         os.system("mv MooringTest/*.log outputs/{}_outputs/".format(self.rootname))
+        os.system("mv MooringTest/figures/* outputs/figures/{}".format(self.rootname))
         os.system("OS_scripts/clean_outputs")
         if del_logs:
             os.system("rm outputs/{}_outputs/*.log".format(self.rootname))

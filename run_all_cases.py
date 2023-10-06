@@ -42,7 +42,7 @@ if __name__ == "__main__":
                      'plot3d': True,
                      'plot2d': False,
                      'from_saved_runs': False,
-                     'outputs_dir' : None,
+                     'outputs_dir' : 'MooringTest/',
                      'v1' : False,
                      'one_dataset' : False,
                      'plot_tRange': 'All'} # needs to be double
