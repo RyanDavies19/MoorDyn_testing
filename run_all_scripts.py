@@ -3,27 +3,27 @@ import MD_drivers
 #------------------- Run All Scripts -----------------------------
 
 # Flags for running (required)
-versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : True, 'run_f' : False}
+versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : False, 'run_f' : True}
 
 # Required
 dynamics_args = {'static' : True, 
                     'sin' : False, 
                     'from_file' : False, 
                     # if sin is true
-                    'period' : 5, 
-                    'A' : 1, 
-                    'axis' : 4 # 0 -> x, 1 -> y, 2 -> z, 3 -> rx , 4 -> ry, 5 -> rz
+                    'period' : 5.96, 
+                    'A' : 0.105, 
+                    'axis' : 2 # 0 -> x, 1 -> y, 2 -> z, 3 -> rx , 4 -> ry, 5 -> rz
                     }
 
 # Required
 run_args = {'simulate' : True,
-            'plot' : True,
+            'plot' : False,
             'del_logs' : False,
-            'rootname' : 'viv_cable',
-            'extension' : '.txt', 
+            'rootname' : 'vertical_spar',
+            'extension' : '.dat', 
             'path' : 'MooringTest/', 
             'tMax' : 20,  # simulation duration (s)
-            'dof' : 3, # DOF of coupled objects: 3 DOF for lines, points, connections, 6 DOF for bodies and rods (for no coupled objects, set to 3). TODO: make this work for coupled bodies and rods at the same time
+            'dof' : 6, # DOF of coupled objects: 3 DOF for lines, points, connections, 6 DOF for bodies and rods (for no coupled objects, set to 3). TODO: make this work for coupled bodies and rods at the same time
             'dt_scaling' : 1, # Scaling factor from dtM to dtC
             'printing' : 1 # verbosity for driver script printing. Recommended is 1
             } 

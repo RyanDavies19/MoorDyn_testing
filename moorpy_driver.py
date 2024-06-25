@@ -9,7 +9,7 @@ import moorpy as mp
 # ----- set up the mooring system and floating body -----
 
 # Create new MoorPy System and set its depth
-ms = mp.System(file='MooringTest/case4.dat')
+ms = mp.System(file='MooringTest/catenary_riser_steady.txt')
 
 # ----- run the model to demonstrate -----
 

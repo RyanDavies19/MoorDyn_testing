@@ -16,3 +16,17 @@ test_cases/*
 rod_inertia.py
 moorpy_driver.py
 
+NES_script.zip
+moorpy_driver.py
+__pycache__/MD_drivers.cpython-311.pyc
+__pycache__/run_all_scripts.cpython-311.pyc
+md_test/moordyn_driver
+md_test/MoorDyn.dvr
+md_test/proofcon_bigF.dat
+OS_scripts/clean_outputs
+Test_cases/v2_test_stuff/pendulum.txt
+OS_scripts/clean_outputs
+Test_cases/v2_test_stuff/pendulum.txt
+OS_scripts/clean_outputs
+Test_cases/v2_test_stuff/pendulum.txt
+archive

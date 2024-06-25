@@ -207,6 +207,9 @@ class Line():
 
         self.coupled = coupled # useful for determining state vector w/ coupled rod
     
+    def attachLine(self, lineID, endB):
+        pass
+
     def loadData(self, dirname, rootname, sep='.MD.'):
         '''Loads line-specific time series data from a MoorDyn output file'''
     
@@ -223,7 +226,6 @@ class Line():
         else:
             raise LineError(self.number,"loadData: could not find Time channel for mooring line ")
     
-        
         nT = len(self.Tdata)  # number of time steps
         
         # check for position data <<<<<<
@@ -1852,7 +1854,7 @@ class run_infile():
             myfile.writelines(['{}             rhoW             - Water density (kg/m^3) \n'.format(self.WtrDnsty)])
             myfile.writelines(['{}              WtrDpth          - Water depth (m) \n'.format(self.WtrDpth)])
             myfile.writelines(['---------------------- MOORDYN ------------------------------------------------ \n'])
-            myfile.writelines(['"{}"      MDInputFile      - Primary HydroDyn input file name (quoted string) \n'.format(os.path.abspath('MD_fortran_input/'+self.rootname+'F'+self.extension))])
+            myfile.writelines(['"{}"      MDInputFile      - Primary MoorDyn input file name (quoted string) \n'.format(os.path.abspath('MD_fortran_input/'+self.rootname+'F'+self.extension))])
             myfile.writelines(['"../MooringTest/F"            OutRootName      - The name which prefixes all HydroDyn generated files (quoted string) \n'])
             myfile.writelines(['{}                  TMax             - Number of time steps in the simulations (-) \n'.format(self.tMax)])
             myfile.writelines(['{}                 dtC              - TimeInterval for the simulation (sec) \n'.format(self.dtC)])
@@ -1945,7 +1947,7 @@ class run_infile():
     def sin (self):
 
         period = self.dynamics_args.get('period', 150)
-        A = self.dynamics_args.get('Amplitude', 10)
+        A = self.dynamics_args.get('A', 10)
         axis = self.dynamics_args.get('axis', 0)
 
         # axis 0 -> x, 1 -> y, 3 -> z
@@ -2186,12 +2188,11 @@ class run_infile():
                 
                     myfile.writelines([line, "\n"])
                     j += 1
-        # running MD fortran
 
+        # running MD fortran
         os.system("{}/moordyn_driver MD_fortran_input/MoorDyn.dvr".format(driverf_path))
 
         # standardizing file names
-
         files = os.listdir('MooringTest/')
         for file in files:
             components = file.split('.')
@@ -2235,8 +2236,8 @@ class run_infile():
        
         if run_c:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"C"+self.extension))
-            self.run_old_API(version = "C", dylib = '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/libmoordyn2.dylib')
-            # self.run_old_API(version = "C", dylib = '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/build/source/libmoordyn.dylib')
+            # self.run_old_API(version = "C", dylib = '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/compile/DYLIB/libmoordyn2.dylib')
+            self.run_old_API(version = "C", dylib = '/Users/rdavies/work/MoorDyn_ryan/MoorDyn/build/source/libmoordyn.dylib')
 
         if run_cpy:
             os.system("cp {} {}".format(self.path+self.rootname+self.extension, self.path+self.rootname+"Cpy"+self.extension))
@@ -2278,7 +2279,7 @@ class run_infile():
         inputs = load_infile(in_dirname = self.path, out_dirname = out_dirname, rootname = self.rootname, extension = self.extension, tMax = self.tMax, printing = self.printing)
 
         # parameters
-        self.dtC = float(inputs.MDoptions["dtM"]) * dt_scaling
+        self.dtC = float(inputs.MDoptions.get("dtM", 0.001)) * dt_scaling
         self.WtrDnsty = float(inputs.MDoptions.get('WtrDnsty', 1025.0))
         self.WtrDpth = float(inputs.MDoptions['WtrDpth'])
         self.num_coupled = inputs.num_coupled
@@ -2340,7 +2341,7 @@ class run_infile():
             self.plot_args['from_saved_runs'] = True
             inputs.figures(plot_args = self.plot_args, versions = self.versions, tMax = self.tMax)
         else:
-            if (self.pringing > 0 ):
+            if (self.printing > 0 ):
                 print("MD_Driver: Please specify appropriate run options. Quitting...")
             exit()
 
@@ -2357,9 +2358,10 @@ class run_infile():
             os.system("mkdir outputs/{}_outputs/".format(self.rootname))
         if self.plot_args.get("save", False) and not os.path.isdir("outputs/figures/"):
             os.system("mkdir outputs/figures/")
+        os.system("cp MooringTest/*{}*{} outputs/{}_outputs/".format(self.rootname, self.extension, self.rootname))
         os.system("mv MooringTest/*.out outputs/{}_outputs/".format(self.rootname))
         os.system("mv MooringTest/*.log outputs/{}_outputs/".format(self.rootname))
-        os.system("mv MooringTest/figures/* outputs/figures/{}".format(self.rootname))
+        os.system("mv MooringTest/figures/* outputs/figures/")
         os.system("OS_scripts/clean_outputs > OS_output.txt")
         if del_logs:
             os.system("rm outputs/{}_outputs/*.log".format(self.rootname))
