@@ -1855,7 +1855,7 @@ class run_infile():
             myfile.writelines(['{}              WtrDpth          - Water depth (m) \n'.format(self.WtrDpth)])
             myfile.writelines(['---------------------- MOORDYN ------------------------------------------------ \n'])
             myfile.writelines(['"{}"      MDInputFile      - Primary MoorDyn input file name (quoted string) \n'.format(os.path.abspath('MD_fortran_input/'+self.rootname+'F'+self.extension))])
-            myfile.writelines(['"../MooringTest/F"            OutRootName      - The name which prefixes all HydroDyn generated files (quoted string) \n'])
+            myfile.writelines(['"../{}/F"            OutRootName      - The name which prefixes all HydroDyn generated files (quoted string) \n'.format(self.path)])
             myfile.writelines(['{}                  TMax             - Number of time steps in the simulations (-) \n'.format(self.tMax)])
             myfile.writelines(['{}                 dtC              - TimeInterval for the simulation (sec) \n'.format(self.dtC)])
             myfile.writelines(['{}                   InputsMode       - MoorDyn coupled object inputs (0: all inputs are zero for every timestep (no coupled objects), 1: time-series inputs (coupled objects)) (switch) \n'.format(InputsMode)])
@@ -2193,7 +2193,7 @@ class run_infile():
         os.system("{}/moordyn_driver MD_fortran_input/MoorDyn.dvr".format(driverf_path))
 
         # standardizing file names
-        files = os.listdir('MooringTest/')
+        files = os.listdir(f'{self.path}/')
         for file in files:
             components = file.split('.')
             if ('MD' in components) and ('F'in components):
@@ -2203,7 +2203,9 @@ class run_infile():
                     new_name = self.rootname+'F.'+ components[0]
                 else:
                     new_name = self.rootname+'F_'+ ('.'.join(map(str, components)))
-                os.system('mv MooringTest/{} MooringTest/{}'.format(file, new_name)) 
+                os.system(f'mv {self.path}/{file} {self.path}/{new_name}') 
+        new_name = self.rootname+'_driver.dvr'
+        os.system(f'mv MD_fortran_input/MoorDyn.dvr {self.path}/{new_name}')
 
         os.system('rm fort.10')
         if (self.printing > 0):

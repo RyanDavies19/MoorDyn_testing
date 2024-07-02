@@ -4,7 +4,7 @@ import os
 if __name__ == "__main__":
 
     # Flags for running
-    versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : True, 'run_f' : False}
+    versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : True, 'run_f' : True}
     
     # Required
     dynamics_args = {'static' : True, 
@@ -22,14 +22,14 @@ if __name__ == "__main__":
                 'plot' : True,
                 'rootname' : '' ,
                 'extension' : '', 
-                'path' : 'MooringTest/', 
-                'tMax' : 100,  # simulation duration (s)
+                'path' : 'reg_tests/', 
+                'tMax' : 60,  # simulation duration (s)
                 'dof' : 6} # DOF of coupled objects: 3 DOF for lines, points, connections, 6 DOF for bodies and rods (for no coupled objects, set to 3). TODO: make this work for coupled bodies and rods at the same time
 
     # Required if plot is true in run_args
     plot_args = {}
     if run_args['plot']: # for plotting moordyn outputs
-        plot_args = {'display': False, 
+        plot_args = {'display': True, 
                      'save': True,    
                      'plot_channels': True, 
                      'animate_all': False,
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                      'plot3d': True,
                      'plot2d': True,
                      'from_saved_runs': False,
-                     'outputs_dir' : 'MooringTest/',
+                     'outputs_dir' : 'reg_tests/',
                      'v1' : False,
                      'one_dataset' : False,
                      'plot_tRange': 'All'} # needs to be double

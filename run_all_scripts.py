@@ -3,7 +3,7 @@ import MD_drivers
 #------------------- Run All Scripts -----------------------------
 
 # Flags for running (required)
-versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : False, 'run_f' : True}
+versions = {'run_v1' : False, 'run_cpy' : False, 'run_c' : True, 'run_f' : True}
 
 # Required
 dynamics_args = {'static' : True, 
@@ -17,12 +17,12 @@ dynamics_args = {'static' : True,
 
 # Required
 run_args = {'simulate' : True,
-            'plot' : False,
+            'plot' : True,
             'del_logs' : False,
-            'rootname' : 'vertical_spar',
+            'rootname' : 'BeamCantilevered',
             'extension' : '.dat', 
-            'path' : 'MooringTest/', 
-            'tMax' : 20,  # simulation duration (s)
+            'path' : 'reg_tests/', 
+            'tMax' : 60,  # simulation duration (s)
             'dof' : 6, # DOF of coupled objects: 3 DOF for lines, points, connections, 6 DOF for bodies and rods (for no coupled objects, set to 3). TODO: make this work for coupled bodies and rods at the same time
             'dt_scaling' : 1, # Scaling factor from dtM to dtC
             'printing' : 1 # verbosity for driver script printing. Recommended is 1
@@ -41,7 +41,7 @@ if run_args['plot']: # for plotting moordyn outputs
                     'plot3d': True,
                     'plot2d': True,
                     'from_saved_runs': False,
-                    'outputs_dir' : None,
+                    'outputs_dir' : 'reg_tests/',
                     'v1' : False,
                     'one_dataset' : False,
                     'plot_tRange': 'All' # needs to be [double, double] or 'All'
