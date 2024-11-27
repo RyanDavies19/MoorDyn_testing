@@ -1,0 +1,1 @@
+Are these the right vectors for zero length rods?

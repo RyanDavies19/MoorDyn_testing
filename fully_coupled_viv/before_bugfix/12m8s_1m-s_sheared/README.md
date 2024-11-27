@@ -1,0 +1,1 @@
+JONSWAP from OpenFAST. TmaxIC = 0. Tp 8s, Hs 12m

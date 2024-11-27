@@ -1,0 +1,74 @@
+MoorDyn v2 Input File. 200m depth. Spar based on Spar15.yaml RAFT model.
+Body is located at the CG of the FOWT, inertia and mass for FOWT from RAFT. 
+Lift coefficient of 1.2 chosen from Wu et al. 2020 as VIVANA-TD default for bare Cylinder 
+Buoyancy module size and locations from the FAD Component design paper. Top 
+cable length reduced from the FAD reference design by 16.49 m to account for different attachment 
+depth and radius (16.49m is the distance between the two different attachment points).
+Cable hydro coefficients are from https://github.com/FloatingArrayDesign/FADesign/blob/2db0cc0969bb16b7ae0065b2c235ea4b92bdfa0c/fadesign/CableDesign2.py#L1130
+To calc hydro coefficients in above script, Lb = Lbs and deq = db, i.e. the buoy size is used for the segment.
+
+Note strict initialization conditions, large TmaxIC, and large CDscaleIC will cause really weird and wrong 
+cable profiles due to cable and modules exposed to 10x drag for 600 seconds.
+
+dtout is 0.1 becasue no exitation above 5hz was ever seen in PSD's
+
+Cable segments are ~0.9m to match length of buoyancy modules
+
+Just the cable
+---------------------- LINE TYPES --------------------------------------------------
+TypeName      Diam     Mass/m     EA     BA/-zeta     EI        Cd      Ca      CdAx    CaAx   Cl
+(name)        (m)      (kg/m)     (N)    (N-s/-)    (N-m^2)     (-)     (-)     (-)     (-)    (-)
+cable         0.1607    36.66  469e6     -1.0       19.92e3     1.2     1       0.0     0.00   1.2
+--------------------- ROD TYPES -----------------------------------------------------
+TypeName      Diam     Mass/m      Cd     Ca      CdEnd    CaEnd
+(name)        (m)      (kg/m)      (-)    (-)     (-)      (-)
+connector      0.1438     0        0      0        0       0
+buoy           0.8650   300.76     0.7    0.68     1.0   0.5  
+---------------------- RODS ---------------------------------------------------------
+ID   RodType  Attachment  Xa    Ya    Za        Xb    Yb    Zb     NumSegs  RodOutputs
+(#)  (name)    (#/key)    (m)   (m)   (m)       (m)   (m)   (m)     (-)       (-)
+1     connector  Fixed   219.0  0.00  -200.00  220.0   0.00  -200.00        0        p
+2     buoy  Free    91.224 0.000 -149.851  90.691 0.000 -149.125       1        p
+3     buoy  Free    83.204 0.000 -142.176  82.466 0.000 -141.661       1        p
+4     buoy  Free    72.385 0.000 -142.316  71.647 0.000 -141.801       1        p
+5     buoy  Free    64.266 0.000 -149.388  63.734 0.000 -150.113       1        p
+6     buoy  Free    59.153 0.000 -159.364  58.620 0.000 -160.090       1        p
+7     buoy  Free    55.543 0.000 -169.993  55.010 0.000 -170.718       1        p
+8     connector  Fixed    15.00  0.00    -30  15.00  0.00    -31       0        p
+---------------------- POINTS -------------------------------------------------------
+ID  Attachment     X       Y       Z           Mass  Volume  CdA    Ca
+(#)   (-)         (m)     (m)     (m)          (kg)  (m�3)  (m^2)   (-)
+1    Fixed      350.00   606.22  -200.00       0.00   0.00   0.00   0.00
+---------------------- LINES --------------------------------------------------------
+ID    LineType      AttachA  AttachB  UnstrLen  NumSegs  LineOutputs
+(#)    (name)        (#)      (#)       (m)       (-)     (-)
+1    cable            r1b     r2a     121.527    109       pVK
+2    cable            r2b     r3a      10.3       11       pVK
+3    cable            r3b     r4a      10.3       11       pVK
+4   cable            r4b     r5a      10.3        11       pVK
+5   cable            r5b     r6a      10.3        11       pVK
+6   cable            r6b     r7a      10.3        11       pVK
+7   cable            r7b     r8a     155.488     173       pVK
+---------------------- OPTIONS ------------------------------------------------------
+2                writeLog
+rk4              tScheme
+0.0001            dtM
+3000000.0        kb
+300000.0         cb
+0.67              FrictionCoefficient
+60               TmaxIC
+9.81             g
+200              WtrDpth
+1025             WtrDnsty
+1                ICgenDynamic
+1                CdScaleIC
+2                dtIC
+0.001           threshIC
+1               Currents
+0.1           dtOut
+----------------------- OUTPUTS -----------------------------------------------------
+FairTen1
+FairTen7
+AnchTen1
+AnchTen7
+--------------------- need this line ------------------------------------------------

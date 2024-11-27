@@ -1,0 +1,81 @@
+MoorDyn v2 Input File. 200m depth. Spar based on Spar15.yaml RAFT model.
+Viscoelastic terms dropped from rope becasue not supported by MDC (dynamic or spring 2 terms)
+Body is located at the CG of the FOWT, inertia and mass for FOWT from RAFT. Spar is 0 mass, 
+becasue mass is accounted for in FOWT. It's just for the hydro coefficients 
+Lift coefficient of 1.2 chosen from Wu et al. 2020 as VIVANA-TD default for bare Cylinder 
+Buoyancy can size and locations from the FAD Component design paper. Bottom 
+cable length reduced from the FAD reference design by 16.49 m to account for different attachment 
+depth and radius (16.49m is the distance between the two different attachment points).
+Cable hydro coefficients are from https://github.com/FloatingArrayDesign/FADesign/blob/2db0cc0969bb16b7ae0065b2c235ea4b92bdfa0c/fadesign/CableDesign2.py#L1130
+---------------------- LINE TYPES --------------------------------------------------
+TypeName      Diam     Mass/m     EA     BA/-zeta     EI        Cd      Ca      CdAx    CaAx   Cl
+(name)        (m)      (kg/m)     (N)    (N-s/-)    (N-m^2)     (-)     (-)     (-)     (-)    (-)
+chain         0.2791   480.93  2.058e+09 -1.000e+00 0.000e+00   1.200   1.000   0.20    0.00   0.00   
+rope          0.1438    22.42  1.424e+08 -1.000e+00 0.000e+00   1.200   1.000   0.20    0.00   0.00
+cable         0.1607    36.66  469e6     -1.000e+00 19.92e3     1.200   1.000   0.00    0.00   0
+buoy          0.3       60.85  469e6     -1.000e+00 19.92e3     0.869   0.930   0.054   0.333  0
+--------------------- ROD TYPES -----------------------------------------------------
+TypeName      Diam     Mass/m      Cd     Ca      CdEnd    CaEnd
+(name)        (m)      (kg/m)      (-)    (-)     (-)      (-)
+Spar           19         0        0.8    1.0     0.6      0.6
+connector      0.1438     0        0      0        0       0
+----------------------- BODIES ------------------------------------------------------
+ID   Attachment  X0   Y0   Z0    r0    p0    y0     Mass          CG*                       I*                         Volume   CdA*   Ca*
+(#)     (-)      (m)  (m)  (m)   (deg) (deg) (deg)  (kg)          (m)                    (kg-m^2)                       (m^3)   (m^2)  (-)
+1    Free         0    0  -56.366  0     0     0   24268136.698    0   71380282163.669|71380282163.669|1117249149.315   0       0     0
+---------------------- RODS ---------------------------------------------------------
+ID   RodType  Attachment  Xa    Ya    Za     Xb    Yb    Zb     NumSegs  RodOutputs
+(#)  (name)    (#/key)    (m)   (m)   (m)    (m)   (m)   (m)     (-)       (-)
+1    Spar      Body1      0     0     71.366 0     0   -28.634   25        p
+2    connector  Fixed   200.00  0.00  -200.00  200.00  0.00  -200.00        0        p
+3    connector  Free     91.224 0.000 -149.125  91.224 0.000 -149.125       0        p
+4    connector  Free      55.010 0.000 -169.993  55.010 0.000 -169.993       0        p
+5    connector  Body1     10.00  0.00    26.366  10.00  0.00    26.366       0        p
+---------------------- POINTS -------------------------------------------------------
+ID  Attachment     X       Y       Z           Mass  Volume  CdA    Ca
+(#)   (-)         (m)     (m)     (m)          (kg)  (m�3)  (m^2)   (-)
+1    Fixed      350.00   606.22  -200.00       0.00   0.00   0.00   0.00
+2    Free       108.24   187.48  -138.42       0.00   0.00   0.00   0.00
+3    Body1      5.00       8.66    26.366      0.00   0.00   0.00   0.00
+4    Fixed     -700.00     0.00  -200.00       0.00   0.00   0.00   0.00
+5    Free      -216.49     0.00  -138.42       0.00   0.00   0.00   0.00
+6    Body1     -10.00      0.00    26.366      0.00   0.00   0.00   0.00
+7    Fixed      350.00  -606.22  -200.00       0.00   0.00   0.00   0.00
+8    Free       108.24  -187.48  -138.42       0.00   0.00   0.00   0.00
+9    Body1      5.00      -8.66    26.366      0.00   0.00   0.00   0.00
+---------------------- LINES --------------------------------------------------------
+ID    LineType      AttachA  AttachB  UnstrLen  NumSegs  LineOutputs
+(#)    (name)        (#)      (#)       (m)       (-)     (-)
+1    chain             1       2      500.0       20       p
+2    rope              2       3      230.0        6       p
+3    chain             4       5      500.0       20       p
+4    rope              5       6      230.0        6       p
+5    chain             7       8      500.0       20       p
+6    rope              8       9      230.0        6       p
+7    cable            r2b     r3a     105.037     36       p
+8    buoy             r3b     r4a       60        36       p
+9   cable            r4b     r5a    171.978     36       p
+---------------------- OPTIONS ------------------------------------------------------
+2                writeLog
+0.0001            dtM
+3000000.0        kb
+300000.0         cb
+0.67              FrictionCoefficient
+60               TmaxIC
+9.81             g
+200              WtrDpth
+1025             WtrDnsty
+1                ICgenDynamic
+1                CdScaleIC
+2                dtIC
+0.001           threshIC
+1               Currents
+3               WaveKin
+1               UnifyCurrentGrid
+0.1           dtWave
+0.001           dtOut
+----------------------- OUTPUTS -----------------------------------------------------
+Fairten9
+Body1PX
+Body1PZ
+--------------------- need this line ------------------------------------------------
