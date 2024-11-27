@@ -9,6 +9,17 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 import moordyn
 
+# # font stuff
+# import matplotlib 
+# font = {'family' : 'serif',
+#          'size'   : 12,
+#          'serif':  'cmr10'
+#          }
+
+# matplotlib.rc('font', **font)
+# matplotlib.rc('axes', unicode_minus=False)
+# # end font stuff
+
 # MoorPy Functions
 def rotationMatrix(x3,x2,x1):
     '''Calculates a rotation matrix based on order-z,y,x instrinsic (tait-bryan?) angles, meaning
@@ -272,7 +283,7 @@ class Line():
         '''Get the time step to use for showing time series data'''
         
         if Time < 0: 
-            ts = np.int(-Time)  # negative value indicates passing a time step index
+            ts = int(-Time)  # negative value indicates passing a time step index
         else:           # otherwise it's a time in s, so find closest time step
             for index, item in enumerate(self.Tdata):
                 #print "index is "+str(index)+" and item is "+str(item)
@@ -387,7 +398,7 @@ class Line():
             
         return linebit
 
-    def drawLine(self, Time, ax, color="k", endpoints=False, shadow=True, colortension=False, cmap_tension='rainbow'):
+    def drawLine(self, Time, ax, color="k", endpoints=False, shadow=True, colortension=False, cmap_tension='rainbow', xbounds = None, ybounds = None, zbounds = None):
         '''Draw the line in 3D
         
         Parameters
@@ -420,6 +431,8 @@ class Line():
             lw = 1
         
         linebit = []  # make empty list to hold plotted lines, however many there are
+
+        out_of_box = False # boolean to avoid plotting things outsdie of the box
     
         if self.isRod > 0:
             
@@ -437,37 +450,73 @@ class Line():
         # drawing lines...
         else:
             
-            Xs, Ys, Zs, Ts = self.getLineCoords(Time)
-            self.rA = np.array([Xs[0], Ys[0], Zs[0]])
-            self.rB = np.array([Xs[-1], Ys[-1], Zs[-1]])
-            
-            if colortension:    # if the mooring lines want to be plotted with colors based on node tensions
-                maxt = np.max(Ts); mint = np.min(Ts)
-                for i in range(len(Xs)-1):          # for each node in the line
-                    color_ratio = ((Ts[i] + Ts[i+1])/2 - mint)/(maxt - mint)  # ratio of the node tension in relation to the max and min tension
-                    cmap_obj = cm.get_cmap(cmap_tension)    # create a cmap object based on the desired colormap
-                    rgba = cmap_obj(color_ratio)    # return the rbga values of the colormap of where the node tension is
-                    linebit.append(ax.plot(Xs[i:i+2], Ys[i:i+2], Zs[i:i+2], color=rgba, zorder=100))
+            Xs_in, Ys_in, Zs_in, Ts = self.getLineCoords(Time)
+            self.rA = np.array([Xs_in[0], Ys_in[0], Zs_in[0]])
+            self.rB = np.array([Xs_in[-1], Ys_in[-1], Zs_in[-1]])
+
+            if (xbounds != None) and (xbounds != None) and (xbounds != None):
+                # print('Line:', self.number)
+                # print(np.shape(Xs_in))
+                # print(np.shape(Ys_in))
+                # print(np.shape(Zs_in))
+                # print(xbounds)
+                # print(Xs_in)
+                # print(np.shape(np.where(Ys_in >= ybounds[0]))[1])
+                # print(np.shape(np.where(Ys_in <= ybounds[1]))[1])
+                xbool = (np.shape(np.where(Xs_in >= xbounds[0]))[1] == 0) or (np.shape(np.where(Xs_in <= xbounds[1]))[1] == 0)
+                ybool = (np.shape(np.where(Ys_in >= ybounds[0]))[1] == 0) or (np.shape(np.where(Ys_in <= ybounds[1]))[1] == 0)
+                zbool = (np.shape(np.where(Zs_in >= zbounds[0]))[1] == 0) or (np.shape(np.where(Zs_in <= zbounds[1]))[1] == 0)
+                # print(xbool,ybool,zbool)
+                # print(np.shape(np.where(Xs_in >= xbounds[0]))[1])
+                if xbool or ybool or zbool:
+                    out_of_box = True
+                else:
+                    if self.number == 1: # this is so hackish and only works for the VIV paper case... :(. Need to figure out how to handle when bounds are positive in general. This logic below only works for low indicies corresponding to negative positions
+                        min_i = max([np.min(np.where(Xs_in >= xbounds[0])), np.min(np.where(Ys_in <= ybounds[1])), np.min(np.where(Zs_in >= zbounds[0]))])
+                    else:
+                        min_i = max([np.min(np.where(Xs_in >= xbounds[0])), np.min(np.where(Ys_in >= ybounds[0])), np.min(np.where(Zs_in >= zbounds[0]))])
+                    # max_i = min([np.max(np.where(Xs_in <= xbounds[1])), np.max(np.where(Ys_in <= ybounds[1])), np.max(np.where(Zs_in <= zbounds[1]))]) # unused because end B (higher node numbers) are towards center of box in the case I am working with
+                    Xs = Xs_in[min_i:]
+                    Ys = Ys_in[min_i:]
+                    Zs = Zs_in[min_i:]
+                    print(f"WARNING: Bounded line ends for plot. Tension colorbar may not be supported for line {self.number}.")
             else:
-                linebit.append(ax.plot(Xs, Ys, Zs, color=color, lw=lw, zorder=100))
+                out_of_box = False
+                Xs = Xs_in
+                Ys = Ys_in
+                Zs = Zs_in
             
-            if shadow:
-                ax.plot(Xs, Ys, np.zeros_like(Xs)-self.sys.depth, color=[0.5, 0.5, 0.5, 0.2], lw=lw, zorder = 1.5) # draw shadow
-            
-            if endpoints == True:
-                linebit.append(ax.scatter([Xs[0], Xs[-1]], [Ys[0], Ys[-1]], [Zs[0], Zs[-1]], color = color))
+            if not out_of_box:
+                if colortension:    # if the mooring lines want to be plotted with colors based on node tensions
+                    maxt = np.max(Ts); mint = np.min(Ts)
+                    for i in range(len(Xs)-1):          # for each node in the line
+                        color_ratio = ((Ts[i] + Ts[i+1])/2 - mint)/(maxt - mint)  # ratio of the node tension in relation to the max and min tension
+                        cmap_obj = cm.get_cmap(cmap_tension)    # create a cmap object based on the desired colormap
+                        rgba = cmap_obj(color_ratio)    # return the rbga values of the colormap of where the node tension is
+                        linebit.append(ax.plot(Xs[i:i+2], Ys[i:i+2], Zs[i:i+2], color=rgba, zorder=100))
+                else:
+                    linebit.append(ax.plot(Xs, Ys, Zs, color=color, lw=lw, zorder=100))
+             
+                if shadow:
+                    ax.plot(Xs, Ys, np.zeros_like(Xs)-self.sys.depth, color=[0.5, 0.5, 0.5, 0.2], lw=lw, zorder = 1.5) # draw shadow
                 
-            # drawing water velocity vectors (not for Rods for now) <<< should handle this better (like in getLineCoords) <<<
-            ts = self.getTimestep(Time)
-            Ux = self.Ux[ts,:]
-            Uy = self.Uy[ts,:]
-            Uz = self.Uz[ts,:]      
-            self.Ubits = ax.quiver(Xs, Ys, Zs, Ux, Uy, Uz)  # make quiver plot and save handle to line object
-                
+                if endpoints == True:
+                    linebit.append(ax.scatter([Xs[0], Xs[-1]], [Ys[0], Ys[-1]], [Zs[0], Zs[-1]], color = color))
+                    
+                # # drawing water velocity vectors (not for Rods for now) <<< should handle this better (like in getLineCoords) <<< Disabled for now, didn't have time to set it up for bounds
+                # ts = self.getTimestep(Time)
+                # Ux = self.Ux[ts,:]
+                # Uy = self.Uy[ts,:]
+                # Uz = self.Uz[ts,:]      
+                # self.Ubits = ax.quiver(Xs, Ys, Zs, Ux, Uy, Uz)  # make quiver plot and save handle to line object
+
+            else:
+                print(f"WARNING: line {self.number} not plotted becasue it is outside of the specified box")
+
+        if not out_of_box: 
+            self.linebit = linebit # can we store this internally?
             
-        self.linebit = linebit # can we store this internally?
-        
-        self.X = np.array([Xs, Ys, Zs])
+            self.X = np.array([Xs, Ys, Zs])
         
             
         return linebit
@@ -873,7 +922,7 @@ class load_infile():
                     entry0 = entries[0].lower()          
                     entry1 = entries[1].lower() 
                     
-                    num = np.int_("".join(c for c in entry0 if not c.isalpha()))  # remove alpha characters to identify Point #
+                    num = int("".join(c for c in entry0 if not c.isalpha()))  # remove alpha characters to identify Point #
                     
                     if ("anch" in entry1) or ("fix" in entry1):
                         pointType = 1
@@ -915,10 +964,10 @@ class load_infile():
                 while line.count('---') == 0:
                     entries = line.split()  # entries: ID  LineType  AttachA  AttachB  UnstrLen  NumSegs   Outputs
                                             
-                    num    = np.int_(entries[0])
+                    num    = int(entries[0])
                     lUnstr = np.float_(entries[4])
                     lineType = self.lineTypes[entries[1]]
-                    nSegs  = np.int_(entries[5])         
+                    nSegs  = int(entries[5])         
                     
                     self.lineList.append(Line(self, num, lUnstr, lineType, nSegs=nSegs, printing = self.printing)) #attachments = [int(entries[4]), int(entries[5])]) )
                     
@@ -1224,6 +1273,13 @@ class load_infile():
             ax.set_ylim([-rbound/2,rbound/2])
             ax.set_zlim([-self.depth, 0])
         
+        # # From VIV paper plotting stuff
+        # xbounds = [-400,250]
+        # ybounds = [-325,325]
+        # ax.set_xlim(xbounds)
+        # ax.set_ylim(ybounds)
+        # zbounds = [-200,0]
+
         # set the AXIS bounds on the axis (changing these bounds can change the perspective of the matplotlib figure)
         if (np.array([xbounds, ybounds, zbounds]) != None).any():
             ax.autoscale(enable=False,axis='both')
@@ -1244,7 +1300,10 @@ class load_infile():
                 pass
             else:
                 if isinstance(rod, Line):
-                    rod.drawLine(time, ax, color=color, shadow=shadow)
+                    if rod.nNodes == 2:
+                        rod.drawLine(time, ax, color="red", shadow=shadow)
+                    else: 
+                        rod.drawLine(time, ax, color="black", shadow=shadow)
                 #if isinstance(rod, Point):  # zero-length special case
                 #    not plotting points for now
             
@@ -1276,7 +1335,7 @@ class load_infile():
                     else:
                         line.drawLine(time, ax, color=[0.5,0.5,0.5], endpoints=endpoints, shadow=shadow, colortension=colortension, cmap_tension=cmap_tension)
                 else:
-                    line.drawLine(time, ax, color=color, endpoints=endpoints, shadow=shadow, colortension=colortension, cmap_tension=cmap_tension)
+                    line.drawLine(time, ax, color="grey", endpoints=endpoints, shadow=shadow, colortension=colortension, cmap_tension=cmap_tension, xbounds = xbounds, ybounds = ybounds, zbounds = zbounds)
                 
                 # Add line labels 
                 if linelabels == True:
@@ -1538,15 +1597,18 @@ class load_infile():
             
         return 
 
-    def plot_start_end(self, plot2d = False, plot_all = False, color = None, ax= None, draw_body = False):
+    def plot_start_end(self, vaxis = 'z', haxis = 'x', plot2d = False, plot_all = False, color = None, ax= None, draw_body = False):
         
+        if plot2d:
+            coords = {'x':[1,0,0], 'y': [0,1,0], 'z':[0,0,1]}
+
         tMax = self.lineList[0].Tdata[-1]
         tMin = self.lineList[0].Tdata[0]
 
         if plot_all:
             if plot2d:
-                self.plot2d(ax=ax[0], bounds='rbound', rbound=0, color=color, time = tMin, draw_body = draw_body)
-                self.plot2d(ax=ax[1], bounds='rbound', rbound=0, color=color, time = tMax-1, draw_body = draw_body)
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax[0], bounds='rbound', rbound=0, color=color, time = tMin, draw_body = draw_body)
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax[1], bounds='rbound', rbound=0, color=color, time = tMax-1, draw_body = draw_body)
             else:
                 self.plot(ax=ax[0], bounds='default', rbound=0, color=color, time = tMin, draw_body = draw_body)
                 self.plot(ax=ax[1], bounds='default', rbound=0, color=color, time = tMax-1, draw_body = draw_body)
@@ -1556,14 +1618,39 @@ class load_infile():
 
         else:
             if plot2d:
-                self.plot2d(ax=ax, bounds='rbound', rbound=0, color = 'r', time = tMin, draw_body = draw_body)
-                self.plot2d(ax=ax, bounds='rbound', rbound=0, color= 'b', time = tMax-1, draw_body = draw_body)
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax, bounds='rbound', rbound=0, color = 'r', time = tMin, draw_body = draw_body)
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax, bounds='rbound', rbound=0, color= 'b', time = tMax-1, draw_body = draw_body)
             else:
                 self.plot(ax=ax, bounds='default', rbound=0, color= 'r', time = tMin, draw_body = draw_body)
                 self.plot(ax=ax, bounds='default', rbound=0, color= 'b', time = tMax-1, draw_body = draw_body)
 
             ax.set_title(self.rootname+self.version)
         
+    def plot_start(self, vaxis = 'z', haxis = 'x', plot2d = False, plot_all = False, color = None, ax= None, draw_body = False):
+        
+        if plot2d:
+            coords = {'x':[1,0,0], 'y': [0,1,0], 'z':[0,0,1]}
+
+        tMin = self.lineList[0].Tdata[0]
+
+        if plot_all:
+            print("Warning: Have not checked this function here")
+            exit()
+
+            if plot2d:
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax, bounds='rbound', rbound=0, color=color, time = tMin, draw_body = draw_body)
+            else:
+                self.plot(ax=ax, bounds='default', rbound=0, color=color, time = tMin, draw_body = draw_body)
+
+        else:
+            if plot2d:
+                self.plot2d(Xuvec=coords[haxis], Yuvec=coords[vaxis], ax=ax, bounds='rbound', rbound=0, color = 'r', time = tMin, draw_body = draw_body)
+            else:
+                self.plot(ax=ax, bounds='default', rbound=0, color= 'r', time = tMin, draw_body = draw_body)
+
+            # ax.set_title(self.rootname+self.version)
+        
+
     def plot_channel(self, ax, color, channelnum = 1):
 
         if len(self.data[:,0]) != (self.tMax/self.dtOut) - 1:
@@ -1625,6 +1712,7 @@ class load_infile():
         animate_start_end = plot_args.get('animate_start_end', False)
         plot_individual_start_end = plot_args.get('plot_individual_start_end', False)
         plot_all_start_end = plot_args.get('plot_all_start_end', False)
+        plot_start = plot_args.get('plot_start', False)
         plot3d = plot_args.get('plot3d', False)
         plot2d = plot_args.get('plot2d', True)
         from_saved_runs = plot_args.get('from_saved_runs', True)
@@ -1641,6 +1729,9 @@ class load_infile():
             plot_tRange = (0,self.tMax-1)
         self.plot_tRange = plot_tRange
         
+        if plot2d:
+            haxis = plot_args.get('horizontal_axis', 'x')
+            vaxis = plot_args.get('vertical_axis', 'z')
         
         if from_saved_runs:
             if outputs_dir == None or outputs_dir == 'outputs/':
@@ -1669,6 +1760,11 @@ class load_infile():
                 fig8, ax8 = plt.subplots(2,1, sharex=True)
             if plot3d:
                 fig9, ax9 = plt.subplots(1,2, subplot_kw = {'projection':'3d'})
+        if plot_start:
+            if plot2d:
+                fig10, ax10 = plt.subplots(1)
+            if plot3d:
+                fig11, ax11 = plt.subplots(1, subplot_kw = {'projection':'3d'})
 
         # Preparing  for loop
         if one_dataset:
@@ -1694,7 +1790,7 @@ class load_infile():
             self.version = version
             if len(self.rootname)==0:
                 raise ValueError("The MoorDyn input root name of the MoorDyn output files need to be given.")
-            if plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end:
+            if plot_all_start_end or plot_individual_start_end or animate_all or animate_start_end or plot_start:
                 for line in self.lineList:
                     if version == 'v1':
                         if one_dataset:
@@ -1733,14 +1829,19 @@ class load_infile():
                 pass
             if plot_individual_start_end:
                 if plot2d:
-                    self.plot_start_end(plot2d = True, ax = ax6[j//2][int(j%2 != 0)], draw_body = draw_body)
+                    self.plot_start_end( haxis=haxis, vaxis=vaxis, plot2d = True, ax = ax6[j//2][int(j%2 != 0)], draw_body = draw_body)
                 if plot3d:
                     self.plot_start_end(ax= ax7[j//2][int(j%2 != 0)], draw_body = draw_body)
             if plot_all_start_end:
                 if plot2d:
-                    self.plot_start_end(plot2d = True, plot_all = True, ax = ax8, color = colors[j], draw_body = draw_body)
+                    self.plot_start_end(haxis=haxis, vaxis=vaxis, plot2d = True, plot_all = True, ax = ax8, color = colors[j], draw_body = draw_body)
                 if plot3d:
                     self.plot_start_end(ax = ax9, plot_all = True, color = colors[j], draw_body = draw_body)
+            if plot_start:
+                if plot2d:
+                    self.plot_start(haxis=haxis, vaxis=vaxis, plot2d = True, plot_all = False, ax = ax10, color = colors[j], draw_body = draw_body)
+                if plot3d:
+                    self.plot_start(ax = ax11, plot_all = False, color = colors[j], draw_body = draw_body)
             j += 1
 
         if display or save:
@@ -1794,6 +1895,27 @@ class load_infile():
                     fig9.suptitle("First and last timestep line shapes (all versions):")
                     fig9.legend(handles = patches)
                     fig9.tight_layout()
+            if plot_start:
+                patches=[]
+                for i, color in enumerate(colors):
+                    patches.append(mpl.lines.Line2D([],[],color = color, label = version_list[i]))
+                if plot2d:
+                    fig10.suptitle("System at start of simulation:")
+                    fig10.legend(handles = patches)
+                    ax10.set_ylabel('Depth (m)')
+                    ax10.set_xlabel('Position (m)')
+                    fig10.tight_layout()
+                    # plt.gcf().set_size_inches(12,8)
+                    # plt.gca().view_init(elev=15, azim=-126, roll=0)
+                    # fig10.savefig("/Users/rdavies/work/MoorDyn_ryan/VIV/other_figures/current_catenary.png", dpi = 300)
+
+                if plot3d:
+                    fig11.suptitle("System at start of simulation:")
+                    fig11.legend(handles = patches)
+                    fig11.tight_layout()
+                    # plt.gcf().set_size_inches(12,8)
+                    # plt.gca().view_init(elev=15, azim=-126, roll=0)
+                    # fig11.savefig("/Users/rdavies/work/MoorDyn_ryan/VIV/other_figures/start.png", dpi = 300)
 
             if display: 
                 plt.show()
@@ -1838,7 +1960,10 @@ class run_infile():
         
     def MDf_build(self):
 
-        os.system("cp MD_fortran_input/MoorDyn.dvr MD_fortran_input/MoorDyn_archived.dvr")
+        if not os.path.isdir("MD_fortran_input/"):
+            os.system('mkdir MD_fortran_input/')
+        else:
+            os.system("cp MD_fortran_input/MoorDyn.dvr MD_fortran_input/MoorDyn_archived.dvr")
         driverfile = "MD_fortran_input/MoorDyn.dvr"
 
         if self.num_coupled == 0:
@@ -1850,7 +1975,7 @@ class run_infile():
             myfile.writelines(['MoorDyn driver input file \n'])
             myfile.writelines(['another comment line\n'])
             myfile.writelines(['---------------------- ENVIRONMENTAL CONDITIONS ------------------------------- \n'])
-            myfile.writelines(['9.80665            Gravity          - Gravity (m/s^2) \n'])
+            myfile.writelines(['{}            Gravity          - Gravity (m/s^2) \n'.format(self.gravity)])
             myfile.writelines(['{}             rhoW             - Water density (kg/m^3) \n'.format(self.WtrDnsty)])
             myfile.writelines(['{}              WtrDpth          - Water depth (m) \n'.format(self.WtrDpth)])
             myfile.writelines(['---------------------- MOORDYN ------------------------------------------------ \n'])
@@ -2156,38 +2281,38 @@ class run_infile():
         # Creating platform position data if not static
         static = self.dynamics_args.get('static', True)
         outFileName = "MD_fortran_input/PtfmMotions.dat" # writes as radians, required input format for openfast
-        if not static:
-            if self.num_coupled>0:
-                os.system("cp MooringTest/ptfm_motions.dat {}".format(outFileName))
-                if (self.printing > 0):
-                    print("MD_Driver: WARNING: Currently copying ptfm_motions.dat directly for fortran use, wont work if prescribed rotations")
-        else:
-            with open(outFileName, 'w') as myfile:     # open an input stream to the line data input file
-                if (self.printing > 1):
-                    print("MD_Driver: Writing pltfm positions to ", outFileName) 
-                i=0  # file line number
-                if self.dof == 6:
-                    header = ["# Time    PtfmSurge    PtfmSway    PtfmHeave    PtfmRoll(rad)    PtfmPitch(rad)    PtfmYaw(rad) \n"]
-                else:
-                    header = ['# Time ']
-                    for i in range(self.num_coupled):
-                        header.append('Fair{}Surge    Fair{}Sway    Fair{}Heave   '.format(i,i,i))
-                    header.append('\n')
-                myfile.writelines(header)
-                for j in range(int(len(self.time))):
-                    datarow = self.x[j]
-                    value = 0.0
-                    line = ""
-                    for k in range(0,self.vector_size+1):
-                        if k == 0:
-                            line += (str(self.time[j])) + "   "
-                        else:
-                            if k <= len(datarow):
-                                value = datarow[k-1] 
-                            line += (str(value)) + "   "
-                
-                    myfile.writelines([line, "\n"])
-                    j += 1
+        # if not static:
+        #     if self.num_coupled>0:
+        #         os.system("cp MooringTest/ptfm_motions.dat {}".format(outFileName))
+        #         if (self.printing > 0):
+        #             print("MD_Driver: WARNING: Currently copying ptfm_motions.dat directly for fortran use, wont work if prescribed rotations")
+        # else:
+        with open(outFileName, 'w') as myfile:     # open an input stream to the line data input file
+            if (self.printing > 1):
+                print("MD_Driver: Writing pltfm positions to ", outFileName) 
+            i=0  # file line number
+            if self.dof == 6:
+                header = ["# Time    PtfmSurge    PtfmSway    PtfmHeave    PtfmRoll(rad)    PtfmPitch(rad)    PtfmYaw(rad) \n"]
+            else:
+                header = ['# Time ']
+                for i in range(self.num_coupled):
+                    header.append('Fair{}Surge    Fair{}Sway    Fair{}Heave   '.format(i,i,i))
+                header.append('\n')
+            myfile.writelines(header)
+            for j in range(int(len(self.time))):
+                datarow = self.x[j]
+                value = 0.0
+                line = ""
+                for k in range(0,self.vector_size+1):
+                    if k == 0:
+                        line += (str(self.time[j])) + "   "
+                    else:
+                        if k <= len(datarow):
+                            value = datarow[k-1] 
+                        line += (str(value)) + "   "
+            
+                myfile.writelines([line, "\n"])
+                j += 1
 
         # running MD fortran
         os.system("{}/moordyn_driver MD_fortran_input/MoorDyn.dvr".format(driverf_path))
@@ -2282,8 +2407,10 @@ class run_infile():
 
         # parameters
         self.dtC = float(inputs.MDoptions.get("dtM", 0.001)) * dt_scaling
-        self.WtrDnsty = float(inputs.MDoptions.get('WtrDnsty', 1025.0))
-        self.WtrDpth = float(inputs.MDoptions['WtrDpth'])
+        if run_f:
+            self.WtrDnsty = float(inputs.MDoptions.get('WtrDnsty', 1025.0))
+            self.WtrDpth = float(inputs.MDoptions['WtrDpth'])
+            self.gravity = float(inputs.MDoptions.get('g', 9.80665))
         self.num_coupled = inputs.num_coupled
 
         # Inital fairlead locations

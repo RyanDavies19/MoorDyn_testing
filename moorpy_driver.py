@@ -9,7 +9,7 @@ import moorpy as mp
 # ----- set up the mooring system and floating body -----
 
 # Create new MoorPy System and set its depth
-ms = mp.System(file='MooringTest/catenary_riser_steady.txt')
+ms = mp.System(file='MooringTest/Spar15_200m_cable_can.dat')
 
 # ----- run the model to demonstrate -----
 
@@ -19,8 +19,8 @@ ms.initialize()                                             # make sure everythi
 ms.solveEquilibrium()                                       # equilibrate
                                    
 
-T = ms.getTensions()
-print(T)
+# T = ms.getTensions()
+# print(T)
 
-# fig, ax = ms.plot()    # plot the system in original configuration  
-# plt.show()
+fig, ax = ms.plot()    # plot the system in original configuration  
+plt.show()

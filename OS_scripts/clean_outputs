@@ -9,4 +9,5 @@ rm MD_fortran_input/*F.*
 rm MD_fortran_input/*.out
 rm MD_fortran_input/*.log
 rm -r MooringTest/figures/
+rm MooringTest/*.dvr
 echo "Removed files with .out and .log extension from Mooring* and MooringTest/Outputs/"
